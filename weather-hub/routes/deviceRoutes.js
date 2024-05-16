@@ -33,6 +33,11 @@ router.get('/status/:deviceUid', (req, res) => {
 router.get('/:id', (req, res) => {
     const id = req.params.id;
     db.query('SELECT * FROM device WHERE device_uid = $1', [id], (error, results) => {
+        if (error) {
+            console.log(error);
+            res.json(error);
+            return;
+        }
         res.json(results.rows[0]);
     });
 });

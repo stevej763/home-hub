@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import './DeviceOverview.css';
-import { Card, CardContent, CardActions, CardActionArea, Button, CardHeader, Avatar, Chip, Typography } from '@mui/material';
+import { Card, CardContent, CardActions, CardActionArea, Button, CardHeader, Avatar, Chip, Typography, Modal } from '@mui/material';
 import { getLatestReadingsForDeviceUid } from '../../api/device';
 import CurrentReadingCharts from '../CurrentReadingCharts/CurrentReadingCharts';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,9 @@ import { Link } from 'react-router-dom';
 const DeviceOverview = ({device}) => {
 
     const [latestReadings, setLatestReadings] = useState({});
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
     useEffect(() => {
         if (!device) {
@@ -57,22 +60,40 @@ const DeviceOverview = ({device}) => {
     const deviceInfo = (device, latestReadings) => {
         const isLiveData = validateLiveData(latestReadings, device);
         return (
-            <Card elevation={4} sx={{ maxWidth: 600 }} className={`deviceCard ${isLiveData ? '' : 'outdated'}`}>
-                <CardActionArea>
-                    <CardHeader 
-                    avatar={defaultAvatar()} 
-                    title={<Typography variant="h5">{device.device_name}</Typography>} 
-                    action={statusChip(device.status)}
-                    />
-                    <CardContent>
-                        {isLiveData ? null : 'Outdated!'}
-                        <CurrentReadingCharts reading={latestReadings} width={100} height={100}/>
-                    </CardContent>
-                </CardActionArea>
-                <CardActions>
-                <Button component={Link} to={`/device/${device.device_uid}`}size="small">More details</Button>
-                </CardActions>
-            </Card>
+            <>
+                <Card elevation={4} sx={{ maxWidth: 600 }} className={`deviceCard ${isLiveData ? '' : 'outdated'}`}>
+                    <CardActionArea component={Link} to={`/device/${device.device_uid}`}>
+                        <CardHeader 
+                        avatar={defaultAvatar()} 
+                        title={<Typography variant="h5">{device.device_name}</Typography>} 
+                        action={statusChip(device.status)}
+                        />
+                        <CardContent>
+                            {isLiveData ? null : 'Outdated!'}
+                            <CurrentReadingCharts reading={latestReadings} width={100} height={100}/>
+                        </CardContent>
+                    </CardActionArea>
+                    <CardActions>
+                    <Button onClick={handleOpen}>Device details</Button>
+                    </CardActions>
+                </Card>
+                <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+                >
+                    <Card>
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                            device Details
+                        </Typography>
+                        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                            Add ability to edit device details here
+                        </Typography>
+                    </Card>
+                </Modal>
+            </>
+            
         )
     }
     return (

@@ -67,6 +67,82 @@ router.get('/temperature/interval', (req, res) => {
     });
 });
 
+router.get('/temperature/interval/:deviceUid', (req, res) => {
+    const [from, to] = [req.query.from, req.query.to]
+    const deviceUid = req.params.deviceUid;
+    const truncation = caluculateTruncation(from, to)
+    db.query(`
+        SELECT
+            date_trunc('hour', t.reading_time) AS timestamp,
+            ROUND(AVG(t.reading)::numeric, 2) AS average_reading,
+            t.device_uid,
+            d.device_name
+        FROM
+        temperature t
+        LEFT JOIN device d ON d.device_uid = t.device_uid
+        WHERE d.device_uid = $1
+        GROUP BY timestamp, t.device_uid, d.device_name
+        ORDER BY timestamp DESC;
+    `, [deviceUid], (error, results) => {
+        if (error) {
+            console.log(error);
+            return;
+        }
+        res.json(results.rows);
+    });
+});
+
+router.get('/pressure/interval/:deviceUid', (req, res) => {
+    const [from, to] = [req.query.from, req.query.to]
+    const deviceUid = req.params.deviceUid;
+    const truncation = caluculateTruncation(from, to)
+    db.query(`
+        SELECT
+            date_trunc('hour', p.reading_time) AS timestamp,
+            ROUND(AVG(p.reading)::numeric, 2) AS average_reading,
+            p.device_uid,
+            d.device_name
+        FROM
+        pressure p
+        LEFT JOIN device d ON d.device_uid = p.device_uid
+        WHERE d.device_uid = $1
+        GROUP BY timestamp, p.device_uid, d.device_name
+        ORDER BY timestamp DESC;
+    `, [deviceUid], (error, results) => {
+        if (error) {
+            console.log(error);
+            return;
+        }
+        res.json(results.rows);
+    });
+});
+
+router.get('/humidity/interval/:deviceUid', (req, res) => {
+    const [from, to] = [req.query.from, req.query.to]
+    const deviceUid = req.params.deviceUid;
+    console.log(deviceUid)
+    const truncation = caluculateTruncation(from, to)
+    db.query(`
+        SELECT
+            date_trunc('hour', h.reading_time) AS timestamp,
+            ROUND(AVG(h.reading)::numeric, 2) AS average_reading,
+            h.device_uid,
+            d.device_name
+        FROM
+        humidity h
+        LEFT JOIN device d ON d.device_uid = h.device_uid
+        WHERE d.device_uid = $1
+        GROUP BY timestamp, h.device_uid, d.device_name
+        ORDER BY timestamp DESC;
+    `, [deviceUid], (error, results) => {
+        if (error) {
+            console.log(error);
+            return;
+        }
+        res.json(results.rows);
+    });
+});
+
 router.get('/pressure/interval', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const truncation = caluculateTruncation(from, to);
