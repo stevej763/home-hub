@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="f985078c-cf61-4e27-aef5-35a09d9b27e0" name="pizero">
+        <fileTransfer rootFolder="/home/steve/dev" accessType="SFTP" host="192.168.1.197" port="22" sshConfigId="46e638bb-8ac3-4e4c-a0be-e38be0901281" sshConfig="steve@192.168.1.197:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="b6761014-1fd4-4619-b20a-24058b43fab8" name="pione">
+        <fileTransfer rootFolder="/home/steve-jones/dev" accessType="SFTP" host="192.168.1." port="22" sshConfigId="b922c493-ffae-499e-a0aa-c4ae8494783b" sshConfig="steve-jones@192.168.1.:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="6ab4631d-7ff7-4fdd-a2e0-5f1349dd16b2" name="pizero3">
+        <fileTransfer rootFolder="/home/steve/dev" accessType="SFTP" host="192.168.1.90" port="22" sshConfigId="d7cf450b-a533-47d9-8bc3-8684dd963f61" sshConfig="steve@192.168.1.90:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="2e149fc2-4ca9-46fc-ae0f-fb016843c81b" name="pizero2">
+        <fileTransfer rootFolder="/home/steve/dev" accessType="SFTP" host="192.168.1.219" port="22" sshConfigId="74f6b3ce-8197-471d-a974-c4d428225b6f" sshConfig="steve@192.168.1.219:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

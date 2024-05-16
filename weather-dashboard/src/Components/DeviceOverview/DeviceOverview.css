@@ -1,0 +1,11 @@
+.deviceCard {
+    margin: 10px;
+}
+
+.outdated {
+    background-color: #ff4b4b;
+}
+
+.HeaderChip {
+    margin:auto
+}
