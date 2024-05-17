@@ -7,7 +7,6 @@ const BarCharts = ({deviceUid}) => {
     const defaultHours = 23;
     const defaultUpdateInterval = 60000;
     const getInterval = (hours) => {
-        console.log('hours:', hours)
       const to = new Date();
       const from = new Date()
       from.setHours(from.getHours() - hours);
@@ -32,6 +31,7 @@ const BarCharts = ({deviceUid}) => {
           try {
             const data = await getTemperatureData(deviceUid, timeInterval.from, timeInterval.to);
             setTemperatureData(data)
+            console.log('temperature:', data)
           } catch (error) {
             console.error('Error fetching temperature data:', error);
           }
@@ -47,11 +47,9 @@ const BarCharts = ({deviceUid}) => {
         }
         const fetchPressure = async () => {
           const timeInterval = getInterval(timePeriod);
-          console.log('pressure:')
           try {
             const data = await getPressureData(deviceUid, timeInterval.from, timeInterval.to);
             setPressureData(data)
-            console.log(data)
           } catch (error) {
             console.error('Error fetching temperature data:', error);
           }
@@ -67,11 +65,9 @@ const BarCharts = ({deviceUid}) => {
         }
         const fetchHumidity = async () => {
           const timeInterval = getInterval(timePeriod);
-          console.log('humidity:')
           try {
             const data = await getHumidityData(deviceUid, timeInterval.from, timeInterval.to);
             setHumidityData(data)
-            console.log(data)
           } catch (error) {
             console.error('Error fetching temperature data:', error);
           }

@@ -4,7 +4,7 @@ const port = process.env.REACT_APP_API_PORT;
 
 const getTemperatureData = async (deviceUid, from, to) => {
     try {
-        return await fetch(`http://${apiServer}:${port}/readings/temperature/interval/${deviceUid}`)
+        return await fetch(`http://${apiServer}:${port}/readings/temperature/interval/${deviceUid}?from=${from}&to=${to}`)
         .then((response) => response.json());
     } catch (error) {
         console.error('Error fetching devices:', error);
