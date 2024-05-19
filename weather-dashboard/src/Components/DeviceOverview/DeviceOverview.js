@@ -36,9 +36,20 @@ const DeviceOverview = ({device}) => {
         return <Avatar src={process.env.PUBLIC_URL + '/Raspberry_Pi-Logo.wine.png'}/>
     }
 
+    const getStatusColour = (status) => {
+         switch(status) {
+            case 'OFFLINE': return 'error';
+            case 'REGISTERED': return 'info';
+            case 'CALIBRATING': return 'warning';
+            case 'READY': return 'primary';
+            case 'ACTIVE': return 'success';
+            default: return 'primary';
+        }
+    }
+
     const statusChip = (status) => {
         const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-        const color = status === 'ACTIVE' ? 'primary' : 'secondary';
+        const color = getStatusColour(status);
         return <Chip label={formattedStatus} color={color}/>
     }
 

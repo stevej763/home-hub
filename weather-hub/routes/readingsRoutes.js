@@ -15,7 +15,6 @@ const caluculateGraphUnits = (from, to) => {
     const diffInMs = Math.abs(date2 - date1);
     const diffInDays = Math.ceil(diffInMs / 1000 / 60 / 60 / 24);
     const diffInHours = Math.ceil(diffInMs / 1000 / 60 / 60);
-    console.log('diff in days: ', diffInDays)
     if (diffInHours <= 1) {
         return 'minute'
     }
