@@ -26,6 +26,8 @@ const DeviceDataPage = () => {
             setDevice(device)
         }
           fetchDevices();
+          const intervalId = setInterval(fetchDevices, updateInterval);
+          return () => clearInterval(intervalId);
     }, []);
 
     useEffect(() => {

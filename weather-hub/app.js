@@ -3,7 +3,7 @@ const cors = require('cors');
 const cron = require('node-cron');
 const app = express();
 const port = 3001;
-const {markDeviceAsOffline} = require('./deviceStatusService');
+const {markDeviceAsOffline, markReadyDevicesAsActive} = require('./deviceStatusService');
 
 app.use(cors());
 app.use(express.json());
@@ -17,8 +17,9 @@ app.use('/measurement', measurementRouter);
 app.use('/readings', readingsRouter);
 
 cron.schedule('1 * * * * *', () => {
-    console.log('Marking devices with last reading longer than a minute ago as OFFLINE')
+    console.log('Running automated device status updates')
     markDeviceAsOffline()
+    markReadyDevicesAsActive()
 });
 
 app.listen(port, () => {

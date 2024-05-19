@@ -49,7 +49,6 @@ const formatPressureFloat = (value) => {
 }
 
 const renderCurrentDataCharts = (reading) => {    
-  if (!reading) return (<div></div>);
   const formattedTemperature = reading.temperature ? parseFloat(reading.temperature) : 0 
   const formattedHumidity = reading.humidity ? parseFloat(reading.humidity) : 0
   const formattedPressure = reading.pressure ? formatPressureFloat(reading.pressure) : 0

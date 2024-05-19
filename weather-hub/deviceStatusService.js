@@ -12,6 +12,17 @@ const markDeviceAsOffline = () => {
     });
 }
 
+const markReadyDevicesAsActive = () => {
+    db.query('UPDATE device SET status = $1 WHERE status = $2', ["ACTIVE", "READY"], (error, results) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log(`Marked ${results.rowCount} devices as ACTIVE`)
+        }
+    });
+
+}
+
 const addLatestDeviceActivity = async (deviceUid) => {
     const timestamp = new Date();
     db.query('UPDATE device SET last_active_at = $1 WHERE device_uid = $2', [timestamp, deviceUid], (error, results) => {
@@ -23,4 +34,4 @@ const addLatestDeviceActivity = async (deviceUid) => {
     });
 }
 
-module.exports = {markDeviceAsOffline, addLatestDeviceActivity};
+module.exports = {markDeviceAsOffline, addLatestDeviceActivity, markReadyDevicesAsActive};

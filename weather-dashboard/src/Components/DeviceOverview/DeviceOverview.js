@@ -7,6 +7,12 @@ import { Link } from 'react-router-dom';
 
 const DeviceOverview = ({device}) => {
 
+    const placeholderReadings = {
+        "temperature": "0",
+        "humidity": "0",
+        "pressure": "0",
+    }
+
     const [latestReadings, setLatestReadings] = useState({});
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
@@ -21,7 +27,7 @@ const DeviceOverview = ({device}) => {
                 setLatestReadings(latestReadings)
             }
             fetchLatestDeviceReadings();
-            const intervalId = setInterval(fetchLatestDeviceReadings, 10000);
+            const intervalId = setInterval(fetchLatestDeviceReadings, 5000);
             return () => clearInterval(intervalId);
         }
     }, [device]);
@@ -36,6 +42,16 @@ const DeviceOverview = ({device}) => {
         return <Chip label={formattedStatus} color={color}/>
     }
 
+    const renderContent = (device) => {
+        if (device.status === 'ACTIVE') {
+           return <CurrentReadingCharts reading={latestReadings} width={100} height={100}/>
+        } else {
+            return <CurrentReadingCharts reading={placeholderReadings} width={100} height={100}/>
+
+        }
+
+    }
+
     const deviceInfo = (device, latestReadings) => {
         return (
             <>
@@ -47,7 +63,7 @@ const DeviceOverview = ({device}) => {
                         action={statusChip(device.status)}
                         />
                         <CardContent>
-                            <CurrentReadingCharts reading={latestReadings} width={100} height={100}/>
+                            {renderContent(device)}
                         </CardContent>
                     </CardActionArea>
                     <CardActions>
@@ -74,7 +90,8 @@ const DeviceOverview = ({device}) => {
         )
     }
     return (
-        <div>{deviceInfo(device, latestReadings)}</div>
+        <div>
+            {deviceInfo(device, latestReadings)}</div>
     )
 }
 

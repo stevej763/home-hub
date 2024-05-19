@@ -68,7 +68,6 @@ router.get('/temperature/interval/:deviceUid', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
-    console.log("Querying from: ", from, " to: ", to, " units: ", units)
     const interval = `1 ${units}`
     db.query(`
     WITH intervals AS (
@@ -107,13 +106,14 @@ router.get('/temperature/interval/:deviceUid', (req, res) => {
 router.get('/pressure/interval/:deviceUid', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
-    const truncation = caluculateGraphUnits(from, to)
+    const units = caluculateGraphUnits(from, to)
+    const interval = `1 ${units}`
     db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc('hour', MIN($1)::TIMESTAMP),
-            date_trunc('hour', MAX($2)::TIMESTAMP),
-            interval '1 hour'
+            date_trunc($4, MIN($1)::TIMESTAMP),
+            date_trunc($4, MAX($2)::TIMESTAMP),
+            ($5)::INTERVAL
         ) AS timestamp
         FROM pressure p
     ),
@@ -129,11 +129,11 @@ router.get('/pressure/interval/:deviceUid', (req, res) => {
         COALESCE(ROUND(AVG(p.reading)::numeric, 2), 0) AS average_reading
     FROM
         device_intervals di
-    LEFT JOIN pressure p ON date_trunc('hour', p.reading_time) = di.timestamp AND p.device_uid = di.device_uid
+    LEFT JOIN pressure p ON date_trunc($4, p.reading_time) = di.timestamp AND p.device_uid = di.device_uid
     WHERE di.device_uid = $3
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, deviceUid], (error, results) => {
+    `, [from, to, deviceUid, units, interval], (error, results) => {
         if (error) {
             console.log(error);
             return;
@@ -145,14 +145,14 @@ router.get('/pressure/interval/:deviceUid', (req, res) => {
 router.get('/humidity/interval/:deviceUid', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
-    console.log(deviceUid)
-    const truncation = caluculateGraphUnits(from, to)
+    const units = caluculateGraphUnits(from, to)
+    const interval = `1 ${units}`
     db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc('hour', MIN($1)::TIMESTAMP),
-            date_trunc('hour', MAX($2)::TIMESTAMP),
-            interval '1 hour'
+            date_trunc($4, MIN($1)::TIMESTAMP),
+            date_trunc($4, MAX($2)::TIMESTAMP),
+            ($5)::INTERVAL
         ) AS timestamp
         FROM humidity h
     ),
@@ -168,11 +168,11 @@ router.get('/humidity/interval/:deviceUid', (req, res) => {
         COALESCE(ROUND(AVG(h.reading)::numeric, 2), 0) AS average_reading
     FROM
         device_intervals di
-    LEFT JOIN humidity h ON date_trunc('hour', h.reading_time) = di.timestamp AND h.device_uid = di.device_uid
+    LEFT JOIN humidity h ON date_trunc($4, h.reading_time) = di.timestamp AND h.device_uid = di.device_uid
     WHERE di.device_uid = $3
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, deviceUid], (error, results) => {
+    `, [from, to, deviceUid, units, interval], (error, results) => {
         if (error) {
             console.log(error);
             return;
@@ -180,34 +180,6 @@ router.get('/humidity/interval/:deviceUid', (req, res) => {
         res.json(results.rows);
     });
 });
-
-const newquery = `
-WITH intervals AS (
-    SELECT generate_series(
-        date_trunc('minute', MIN('2024-05-17 10:00:00')::TIMESTAMP),
-        date_trunc('minute', MAX('2024-05-17 11:00:00')::TIMESTAMP),
-        interval '1 minute'
-    ) AS timestamp
-    FROM temperature t
-),
-device_intervals AS (
-    SELECT i.timestamp, d.device_uid, d.device_name
-    FROM intervals i
-    CROSS JOIN device d
-)
-SELECT
-    di.timestamp,
-    di.device_uid,
-    di.device_name,
-    COALESCE(ROUND(AVG(t.reading)::numeric, 2), 0) AS average_reading
-FROM
-    device_intervals di
-LEFT JOIN temperature t ON date_trunc('minute', t.reading_time) = di.timestamp AND t.device_uid = di.device_uid
-WHERE di.device_uid = 'c9016b6a-9841-4d4e-bd28-c4bef7d3bdb5'
-GROUP BY di.timestamp, di.device_uid, di.device_name
-ORDER BY di.timestamp DESC;
-
-`
 
 router.get('/pressure/interval', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]

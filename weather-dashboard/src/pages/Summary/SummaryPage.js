@@ -9,11 +9,12 @@ const SummaryPage = () => {
     
     useEffect(() => {
         const fetchDevices = async () => {
-            console.log('fetching devices')
             const devices = await getDevices();
             setDevices(devices)
         }
           fetchDevices();
+          const intervalId = setInterval(fetchDevices, 10000);
+          return () => clearInterval(intervalId);
     }, []);
 
     const deviceGrid = (devices) => {
