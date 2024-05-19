@@ -3,13 +3,6 @@
   <component name="PublishConfigData" autoUpload="Always" serverName="pizero" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="pione">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/sensor" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="pizero">
         <serverdata>
           <mappings>

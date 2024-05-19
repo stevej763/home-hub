@@ -3,16 +3,9 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="f985078c-cf61-4e27-aef5-35a09d9b27e0" name="pizero">
-        <fileTransfer rootFolder="/home/steve/dev" accessType="SFTP" host="192.168.1.197" port="22" sshConfigId="46e638bb-8ac3-4e4c-a0be-e38be0901281" sshConfig="steve@192.168.1.197:22 password">
+        <fileTransfer rootFolder="/home/steve/dev" accessType="SFTP" host="192.168.1.195" port="22" sshConfigId="46e638bb-8ac3-4e4c-a0be-e38be0901281" sshConfig="steve@192.168.1.195:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
-          </advancedOptions>
-        </fileTransfer>
-      </webServer>
-      <webServer id="b6761014-1fd4-4619-b20a-24058b43fab8" name="pione">
-        <fileTransfer rootFolder="/home/steve-jones/dev" accessType="SFTP" host="192.168.1." port="22" sshConfigId="b922c493-ffae-499e-a0aa-c4ae8494783b" sshConfig="steve-jones@192.168.1.:22 password">
-          <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>
