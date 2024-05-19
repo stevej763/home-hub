@@ -14,7 +14,7 @@ const getTemperatureData = async (deviceUid, from, to) => {
 
 const getPressureData = async (deviceUid, from, to) => {
     try {
-        return await fetch(`http://${apiServer}:${port}/readings/pressure/interval/${deviceUid}`)
+        return await fetch(`http://${apiServer}:${port}/readings/pressure/interval/${deviceUid}?from=${from}&to=${to}`)
         .then((response) => response.json());
     } catch (error) {
         console.error('Error fetching devices:', error);
@@ -24,7 +24,7 @@ const getPressureData = async (deviceUid, from, to) => {
 
 const getHumidityData = async (deviceUid, from, to) => {
     try {
-        return await fetch(`http://${apiServer}:${port}/readings/humidity/interval/${deviceUid}`)
+        return await fetch(`http://${apiServer}:${port}/readings/humidity/interval/${deviceUid}?from=${from}&to=${to}`)
         .then((response) => response.json());
     } catch (error) {
         console.error('Error fetching devices:', error);

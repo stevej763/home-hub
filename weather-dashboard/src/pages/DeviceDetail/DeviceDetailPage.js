@@ -5,11 +5,14 @@ import { useEffect, useState } from "react";
 import { getDevice, getLatestReadingsForDeviceUid } from "../../api/device";
 import CurrentReadingCharts from "../../Components/CurrentReadingCharts/CurrentReadingCharts";
 import BarCharts from "../../Components/Chart/BarCharts";
-
+import TimePicker from "../../Components/TimePicker/TimePicker";
+import './DeviceDetail.css';
 const DeviceDataPage = () => {
     const { deviceUid } = useParams();
     const [device, setDevice] = useState({});
     const [latestReadings, setLatestReadings] = useState({});
+    const [timePeriod, setTimePeriod] = useState(1);
+    const [updateInterval, setUpdateInterval] = useState(10000);
 
     useEffect(() => {
         if (!deviceUid) {
@@ -39,6 +42,19 @@ const DeviceDataPage = () => {
         }
     }, []);
 
+    const updateTimePeriod = (hours) => {
+        setTimePeriod(hours);
+    }
+
+    const renderTimePicker = () => {
+        return (
+            <TimePicker
+                timePeriod={timePeriod}
+                updateTimePeriod={updateTimePeriod}
+            />
+        )
+    }
+
     return (
         <div>
             <Breadcrumbs aria-label="breadcrumb">
@@ -52,10 +68,13 @@ const DeviceDataPage = () => {
             </Link>
                 <Typography color="text.primary">{device.device_name}</Typography>
             </Breadcrumbs>
-            <h1>{device.device_name} Dashboard</h1>
+            <div className="dashboard-header">
+                <h1>{device.device_name} Dashboard</h1>
+                {renderTimePicker()}
+            </div>
             <p>Device UID: {deviceUid}</p>
             <CurrentReadingCharts reading={latestReadings} width={300} height={200}/>
-            <BarCharts deviceUid={deviceUid}/>
+            <BarCharts deviceUid={deviceUid} timePeriod={timePeriod} updateInterval={updateInterval}/>
         </div>
     )
 };

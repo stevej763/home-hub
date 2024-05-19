@@ -9,31 +9,28 @@ router.get('/temperature', (req, res) => {
     });
 });
 
-const caluculateTruncation = (from, to) => {
+const caluculateGraphUnits = (from, to) => {
     const date1 = new Date(from);
     const date2 = new Date(to);
     const diffInMs = Math.abs(date2 - date1);
     const diffInDays = Math.ceil(diffInMs / 1000 / 60 / 60 / 24);
-    if (diffInDays >= 90) {
-        return 'month'
-    }
-    if (diffInDays >= 30) {
-        return 'day'
-    }
-    if (diffInDays >= 7) {
-        return 'day'
-    } 
-    if (diffInDays >= 1) {
-        return 'hour'
-    } else {
+    const diffInHours = Math.ceil(diffInMs / 1000 / 60 / 60);
+    console.log('diff in days: ', diffInDays)
+    if (diffInHours <= 1) {
         return 'minute'
     }
-
-}
+    if (diffInHours <= 24) {
+        return 'hour'
+    }
+    if (diffInDays <= 90) {
+        return 'day'
+    }
+    return 'month'
+    }
 
 router.get('/temperature/interval', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
-    const truncation = caluculateTruncation(from, to)
+    const truncation = caluculateGraphUnits(from, to)
     db.query(`
     WITH intervals AS (
         SELECT generate_series(
@@ -69,36 +66,40 @@ router.get('/temperature/interval', (req, res) => {
 
 router.get('/temperature/interval/:deviceUid', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
-    console.log(from)
     const deviceUid = req.params.deviceUid;
-    const truncation = caluculateTruncation(from, to)
+    const units = caluculateGraphUnits(from, to)
+    console.log("Querying from: ", from, " to: ", to, " units: ", units)
+    const interval = `1 ${units}`
     db.query(`
-        WITH intervals AS (
-            SELECT generate_series(
-                date_trunc('hour', MIN($1::TIMESTAMP)),
-                date_trunc('hour', MAX($2::TIMESTAMP)),
-                interval '1 hour'
-            ) AS timestamp
-            FROM temperature t
-        )
-        SELECT
-            i.timestamp,
-            COALESCE(ROUND(AVG(t.reading)::numeric, 2), 0) AS average_reading,
-            t.device_uid,
-            d.device_name
-        FROM
-            intervals i
-        LEFT JOIN temperature t ON date_trunc('hour', t.reading_time) = i.timestamp
-        LEFT JOIN device d ON d.device_uid = t.device_uid
-        WHERE t.device_uid = $3
-        GROUP BY i.timestamp, t.device_uid, d.device_name
-        ORDER BY i.timestamp DESC;
-    `, [from, to, deviceUid], (error, results) => {
+    WITH intervals AS (
+        SELECT generate_series(
+            date_trunc($4, MIN($1)::TIMESTAMP),
+            date_trunc($4, MAX($2)::TIMESTAMP),
+            ($5)::INTERVAL
+        ) AS timestamp
+        FROM temperature t
+    ),
+    device_intervals AS (
+        SELECT i.timestamp, d.device_uid, d.device_name
+        FROM intervals i
+        CROSS JOIN device d
+    )
+    SELECT
+        di.timestamp,
+        di.device_uid,
+        di.device_name,
+        COALESCE(ROUND(AVG(t.reading)::numeric, 2), 0) AS average_reading
+    FROM
+        device_intervals di
+    LEFT JOIN temperature t ON date_trunc($4, t.reading_time) = di.timestamp AND t.device_uid = di.device_uid
+    WHERE di.device_uid = $3
+    GROUP BY di.timestamp, di.device_uid, di.device_name
+    ORDER BY di.timestamp DESC;
+    `, [from, to, deviceUid, units, interval], (error, results) => {
         if (error) {
             console.log(error);
             return;
         }
-        console.log(results.rows)
         res.json(results.rows);
     });
 });
@@ -106,20 +107,33 @@ router.get('/temperature/interval/:deviceUid', (req, res) => {
 router.get('/pressure/interval/:deviceUid', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
-    const truncation = caluculateTruncation(from, to)
+    const truncation = caluculateGraphUnits(from, to)
     db.query(`
-        SELECT
-            date_trunc('hour', p.reading_time) AS timestamp,
-            ROUND(AVG(p.reading)::numeric, 2) AS average_reading,
-            p.device_uid,
-            d.device_name
-        FROM
-        pressure p
-        LEFT JOIN device d ON d.device_uid = p.device_uid
-        WHERE d.device_uid = $1
-        GROUP BY timestamp, p.device_uid, d.device_name
-        ORDER BY timestamp DESC;
-    `, [deviceUid], (error, results) => {
+    WITH intervals AS (
+        SELECT generate_series(
+            date_trunc('hour', MIN($1)::TIMESTAMP),
+            date_trunc('hour', MAX($2)::TIMESTAMP),
+            interval '1 hour'
+        ) AS timestamp
+        FROM pressure p
+    ),
+    device_intervals AS (
+        SELECT i.timestamp, d.device_uid, d.device_name
+        FROM intervals i
+        CROSS JOIN device d
+    )
+    SELECT
+        di.timestamp,
+        di.device_uid,
+        di.device_name,
+        COALESCE(ROUND(AVG(p.reading)::numeric, 2), 0) AS average_reading
+    FROM
+        device_intervals di
+    LEFT JOIN pressure p ON date_trunc('hour', p.reading_time) = di.timestamp AND p.device_uid = di.device_uid
+    WHERE di.device_uid = $3
+    GROUP BY di.timestamp, di.device_uid, di.device_name
+    ORDER BY di.timestamp DESC;
+    `, [from, to, deviceUid], (error, results) => {
         if (error) {
             console.log(error);
             return;
@@ -132,20 +146,33 @@ router.get('/humidity/interval/:deviceUid', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     console.log(deviceUid)
-    const truncation = caluculateTruncation(from, to)
+    const truncation = caluculateGraphUnits(from, to)
     db.query(`
-        SELECT
-            date_trunc('hour', h.reading_time) AS timestamp,
-            ROUND(AVG(h.reading)::numeric, 2) AS average_reading,
-            h.device_uid,
-            d.device_name
-        FROM
-        humidity h
-        LEFT JOIN device d ON d.device_uid = h.device_uid
-        WHERE d.device_uid = $1
-        GROUP BY timestamp, h.device_uid, d.device_name
-        ORDER BY timestamp DESC;
-    `, [deviceUid], (error, results) => {
+    WITH intervals AS (
+        SELECT generate_series(
+            date_trunc('hour', MIN($1)::TIMESTAMP),
+            date_trunc('hour', MAX($2)::TIMESTAMP),
+            interval '1 hour'
+        ) AS timestamp
+        FROM humidity h
+    ),
+    device_intervals AS (
+        SELECT i.timestamp, d.device_uid, d.device_name
+        FROM intervals i
+        CROSS JOIN device d
+    )
+    SELECT
+        di.timestamp,
+        di.device_uid,
+        di.device_name,
+        COALESCE(ROUND(AVG(h.reading)::numeric, 2), 0) AS average_reading
+    FROM
+        device_intervals di
+    LEFT JOIN humidity h ON date_trunc('hour', h.reading_time) = di.timestamp AND h.device_uid = di.device_uid
+    WHERE di.device_uid = $3
+    GROUP BY di.timestamp, di.device_uid, di.device_name
+    ORDER BY di.timestamp DESC;
+    `, [from, to, deviceUid], (error, results) => {
         if (error) {
             console.log(error);
             return;
@@ -184,7 +211,7 @@ ORDER BY di.timestamp DESC;
 
 router.get('/pressure/interval', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
-    const truncation = caluculateTruncation(from, to);
+    const truncation = caluculateGraphUnits(from, to);
     db.query(`
     WITH intervals AS (
         SELECT generate_series(
@@ -216,7 +243,7 @@ router.get('/pressure/interval', (req, res) => {
 
 router.get('/humidity/interval', (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
-    const truncation = caluculateTruncation(from, to);
+    const truncation = caluculateGraphUnits(from, to);
     db.query(`
     WITH intervals AS (
         SELECT generate_series(

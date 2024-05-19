@@ -12,6 +12,7 @@
       <change beforePath="$PROJECT_DIR$/../weather-hub/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-hub/node_modules/.package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../weather-hub/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-hub/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../weather-hub/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-hub/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../weather-hub/routes/deviceRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-hub/routes/deviceRoutes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../weather-hub/routes/measurementRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-hub/routes/measurementRoutes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../weather-hub/routes/readingsRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-hub/routes/readingsRoutes.js" afterDir="false" />
     </list>
@@ -106,7 +107,7 @@
       <workItem from="1715767993348" duration="3113000" />
       <workItem from="1715815181286" duration="1723000" />
       <workItem from="1716039514065" duration="2072000" />
-      <workItem from="1716116670423" duration="2855000" />
+      <workItem from="1716116670423" duration="5229000" />
     </task>
     <servers />
   </component>

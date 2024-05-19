@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react';
 import { getTemperatureData, getHumidityData, getPressureData } from '../../api/measurements';
 import { BarChart } from '@mui/x-charts';
 
-const BarCharts = ({deviceUid}) => {
+const BarCharts = ({deviceUid, timePeriod, updateInterval}) => {
 
-    const defaultHours = 23;
-    const defaultUpdateInterval = 60000;
     const getInterval = (hours) => {
       const to = new Date();
-      const from = new Date()
+      const from = new Date();
+      
+      if (hours > 1) {
+        from.setMinutes(0, 0, 0)
+        to.setMinutes(0, 0, 0)
+      }
       from.setHours(from.getHours() - hours);
       const interval = {'from': from.toISOString(), 'to': to.toISOString()}
       console.log('interval:', interval)
@@ -18,8 +21,6 @@ const BarCharts = ({deviceUid}) => {
     const [temperatureData, setTemperatureData] = useState([]);
     const [humidityData, setHumidityData] = useState([]);
     const [pressureData, setPressureData] = useState([]);
-    const [timePeriod, setTimePeriod] = useState(defaultHours);
-    const [updateInterval, setUpdateInterval] = useState(defaultUpdateInterval);
 
 
     useEffect(() => {
@@ -30,7 +31,7 @@ const BarCharts = ({deviceUid}) => {
           const timeInterval = getInterval(timePeriod);
           try {
             const data = await getTemperatureData(deviceUid, timeInterval.from, timeInterval.to);
-            setTemperatureData(data)
+            setTemperatureData(data.reverse())
             console.log('temperature:', data)
           } catch (error) {
             console.error('Error fetching temperature data:', error);
@@ -49,7 +50,7 @@ const BarCharts = ({deviceUid}) => {
           const timeInterval = getInterval(timePeriod);
           try {
             const data = await getPressureData(deviceUid, timeInterval.from, timeInterval.to);
-            setPressureData(data)
+            setPressureData(data.reverse())
           } catch (error) {
             console.error('Error fetching temperature data:', error);
           }
@@ -67,7 +68,7 @@ const BarCharts = ({deviceUid}) => {
           const timeInterval = getInterval(timePeriod);
           try {
             const data = await getHumidityData(deviceUid, timeInterval.from, timeInterval.to);
-            setHumidityData(data)
+            setHumidityData(data.reverse())
           } catch (error) {
             console.error('Error fetching temperature data:', error);
           }

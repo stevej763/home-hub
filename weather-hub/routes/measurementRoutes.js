@@ -2,17 +2,19 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const uuid = require('uuid');
+const { addLatestDeviceActivity } = require('../deviceStatusService');
 
 
 router.post('/record', (req, res) => {
     const { device_uid, temperature, humidity, pressure } = req.body;
-    console.log("data received from: ", device_uid, " temperature: ", temperature, " humidity: ", humidity, " pressure: ", pressure)
+    //console.log("data received from: ", device_uid, " temperature: ", temperature, " humidity: ", humidity, " pressure: ", pressure)
     const timestamp = new Date().toISOString();
     db.query('SELECT status FROM device WHERE device_uid = $1', [req.body.device_uid], (error, results) => {
         if (results.rows[0].status != "ACTIVE") {
             res.json({"error": "Device is not active"})
             return;
         } else {
+            addLatestDeviceActivity(device_uid);
             if (temperature != null) {
                 db.query('INSERT INTO temperature (temperature_uid, reading, device_uid, reading_time) VALUES ($1, $2, $3, $4)', 
                 [uuid.v4(), temperature, device_uid, timestamp], (error, results) => {

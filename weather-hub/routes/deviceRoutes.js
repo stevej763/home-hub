@@ -8,6 +8,7 @@ const DEVICE_STATUS = [
     "READY",
     "ACTIVE",
     "DISABLED",
+    "OFFLINE",
     "RETIRED"
 ]
 
@@ -50,7 +51,7 @@ router.post('/status/calibrating/:deviceUid', (req, res) => {
             res.json(error);
             return;
         } else {
-            console.log("marking as calibrating")
+            console.log(`Marking device ${deviceUid} as CALIBRATING`)
             res.json({"result": "success", "device_id": deviceUid, "message": "Device status set to CALIBRATING"});
         }
     });
@@ -64,7 +65,7 @@ router.post('/status/ready/:deviceUid', (req, res) => {
             res.json(error);
             return;
         } else {
-            console.log("marking as ready")
+            console.log(`Marking device ${deviceUid} as READY`)
             res.json({"result": "success", "device_id": deviceUid, "message": "Device status set to READY"});
         }
     });
@@ -87,7 +88,7 @@ router.post('/register', (req, res) => {
                     res.json(error);
                     return;
                 } else {
-                    console.log("marking as registered")
+                    console.log(`Marking device ${device_uid} as REGISTERED`)
                     res.json({"result": "success", "device_id": device_uid, "message": "Device already exists. Device status set to REGISTERED"});
                 }
             });
@@ -100,7 +101,7 @@ router.post('/register', (req, res) => {
                     res.json(error)
                     return;
                 } else {
-                    console.log(results)
+                    console.log(`"Successfully registered device device_uid: ", device_uid`)
                     res.json({"result": "success", "device_uid": device_uid});    
                 }
             });
@@ -175,6 +176,7 @@ router.post('/activate/:deviceUid', (req, res) => {
             res.json(error);
             return;
         } else {
+            console.log(`Marking device ${deviceUid} as ACTIVE`)
             res.json({"result": "success", "device_id": deviceUid});
         }
     });
