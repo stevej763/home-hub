@@ -17,7 +17,7 @@ bme280 = BME280(i2c_dev=bus)
 deviceUid = ""
 ipAddress = ""
 hostname = ""
-serverIp = "192.168.1.118"
+serverIp = "192.168.1.117"
 calibrationEnabled = True
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
