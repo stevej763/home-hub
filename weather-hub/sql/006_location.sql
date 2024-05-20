@@ -1,6 +1,6 @@
 CREATE TABLE location (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
-    location_uid INTEGER NOT NULL,
+    location_uid UUID NOT NULL,
     location_name TEXT NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,

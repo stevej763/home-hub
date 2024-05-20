@@ -4,6 +4,7 @@ import { Card, CardContent, CardActions, CardActionArea, Button, CardHeader, Ava
 import { getLatestReadingsForDeviceUid } from '../../api/device';
 import CurrentReadingCharts from '../CurrentReadingCharts/CurrentReadingCharts';
 import { Link } from 'react-router-dom';
+import { DeviceDetailsModal } from '../Modal/DeviceDetailsModal';
 
 const DeviceOverview = ({device}) => {
 
@@ -81,21 +82,7 @@ const DeviceOverview = ({device}) => {
                     <Button onClick={handleOpen}>Device details</Button>
                     </CardActions>
                 </Card>
-                <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-                >
-                    <Card>
-                        <Typography id="modal-modal-title" variant="h6" component="h2">
-                            device Details
-                        </Typography>
-                        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                            Add ability to edit device details here
-                        </Typography>
-                    </Card>
-                </Modal>
+                <DeviceDetailsModal show={open} handleClose={handleClose} device={device}/>
             </>
             
         )
