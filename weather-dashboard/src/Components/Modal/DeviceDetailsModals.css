@@ -9,3 +9,8 @@
   max-width: 500px; 
   
   };
+
+  .modelForm {
+    display: flex;
+    flex-direction: row;
+  }

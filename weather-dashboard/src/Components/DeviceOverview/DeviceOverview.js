@@ -6,7 +6,7 @@ import CurrentReadingCharts from '../CurrentReadingCharts/CurrentReadingCharts';
 import { Link } from 'react-router-dom';
 import { DeviceDetailsModal } from '../Modal/DeviceDetailsModal';
 
-const DeviceOverview = ({device}) => {
+const DeviceOverview = ({device, updateDevices}) => {
 
     const placeholderReadings = {
         "temperature": "0",
@@ -17,8 +17,10 @@ const DeviceOverview = ({device}) => {
     const [latestReadings, setLatestReadings] = useState({});
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-
+    const handleClose = () => {
+        updateDevices()
+        setOpen(false);
+    }
     useEffect(() => {
         if (!device) {
             return;
@@ -64,17 +66,18 @@ const DeviceOverview = ({device}) => {
 
     }
 
-    const deviceInfo = (device, latestReadings) => {
+    const deviceInfo = (device) => {
         return (
             <>
                 <Card elevation={4} sx={{ maxWidth: 600 }} className={`deviceCard`}>
                     <CardActionArea component={Link} to={`/device/${device.device_uid}`}>
                         <CardHeader 
                         avatar={defaultAvatar()} 
-                        title={<Typography variant="h5">{device.device_name}</Typography>} 
-                        action={statusChip(device.status)}
+                        title={<Typography variant="h5">{device.device_name}</Typography>}
                         />
                         <CardContent>
+                            <Typography variant="body1">{device.location_name}</Typography>
+                            {statusChip(device.status)}
                             {renderContent(device)}
                         </CardContent>
                     </CardActionArea>
@@ -89,7 +92,7 @@ const DeviceOverview = ({device}) => {
     }
     return (
         <div>
-            {deviceInfo(device, latestReadings)}</div>
+            {deviceInfo(device)}</div>
     )
 }
 

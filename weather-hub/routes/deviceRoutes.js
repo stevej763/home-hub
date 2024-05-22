@@ -14,7 +14,7 @@ const DEVICE_STATUS = [
 
 router.get('/', (req, res) => {
     console.log("Getting all devices")
-    db.query('SELECT * FROM device', (error, results) => {
+    db.query('SELECT * FROM device LEFT JOIN location ON location.location_uid = device.location_uid', (error, results) => {
         res.json(results.rows);
     });
 });
@@ -107,6 +107,20 @@ router.post('/register', (req, res) => {
             });
         }
     })
+});
+
+router.post('/update', (req, res) => {
+    const { deviceUid, deviceName, locationUid } = req.body;
+    console.log(deviceName, deviceUid, locationUid)
+    db.query('UPDATE device SET device_name = $1, location_uid = $2 WHERE device_uid = $3', [deviceName, locationUid, deviceUid], (error, results) => {
+        if (error) {
+            console.log(error)
+            res.json(error)
+            return;
+        }
+        console.log(results)
+        res.json({"result": "success", "message": "Device details updated successfully"});
+    });
 });
 
 router.post('/clear/:deviceUid', (req, res) => {

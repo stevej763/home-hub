@@ -7,20 +7,20 @@ const SummaryPage = () => {
 
     const [devices, setDevices] = useState([]);
     
+    const fetchDevices = async () => {
+        const devices = await getDevices();
+        const sortedDevices = devices.sort((a, b) => a.device_name.localeCompare(b.device_name));
+        setDevices(sortedDevices)
+    }
+
     useEffect(() => {
-        const fetchDevices = async () => {
-            const devices = await getDevices();
-            const sortedDevices = devices.sort((a, b) => a.device_name.localeCompare(b.device_name));
-            setDevices(sortedDevices)
-        }
-          fetchDevices();
-          const intervalId = setInterval(fetchDevices, 10000);
-          return () => clearInterval(intervalId);
+        fetchDevices();
+        const intervalId = setInterval(fetchDevices, 10000);
+        return () => clearInterval(intervalId);
     }, []);
 
     const deviceGrid = (devices) => {
-        return devices.sort().map((device) => <DeviceOverview key={device.id} device={device}/>)
-        
+        return devices.sort().map((device) => <DeviceOverview key={device.id} device={device} updateDevices={fetchDevices}/>)
     }
 
     return (

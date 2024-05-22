@@ -1,0 +1,1 @@
+ALTER TABLE device ADD COLUMN location_uid UUID NULL REFERENCES location(location_uid);

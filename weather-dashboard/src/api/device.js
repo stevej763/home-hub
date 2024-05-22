@@ -28,4 +28,18 @@ const getLatestReadingsForDeviceUid = async (deviceUid) => {
     }
 }
 
-export { getDevices, getDevice, getLatestReadingsForDeviceUid };
+const postDeviceChanges = async (payload) => {
+    try {
+        return await fetch(`http://${apiServer}:${port}/devices/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        }).then((response) => response.json());
+    } catch (error) {
+        console.error('Error updating device:', error);
+    }
+}
+
+export { getDevices, getDevice, getLatestReadingsForDeviceUid, postDeviceChanges };
