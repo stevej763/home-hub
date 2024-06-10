@@ -14,10 +14,25 @@ const DEVICE_STATUS = [
 
 router.get('/', (req, res) => {
     console.log("Getting all devices")
-    db.query('SELECT * FROM device LEFT JOIN location ON location.location_uid = device.location_uid', (error, results) => {
+    db.query('SELECT * FROM device LEFT JOIN location ON device.location_uid = location.location_uid', (error, results) => {
+        if (error) {
+            console.log(error)
+            return
+        }
         res.json(results.rows);
     });
 });
+
+router.get('/t', (req, res) => {
+    console.log("Getting all devices")
+    db.query(`SELECT * FROM device`, (error, results) => {
+        if (error) {
+            console.log(error)
+            return
+        }
+        res.json(results.rows);
+    });
+})
 
 router.get('/status/:deviceUid', (req, res) => {
     const deviceUid = req.params.deviceUid;
@@ -101,7 +116,7 @@ router.post('/register', (req, res) => {
                     res.json(error)
                     return;
                 } else {
-                    console.log(`"Successfully registered device device_uid: ", device_uid`)
+                    console.log("Successfully registered device device_uid: ", device_uid)
                     res.json({"result": "success", "device_uid": device_uid});    
                 }
             });

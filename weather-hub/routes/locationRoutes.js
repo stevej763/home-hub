@@ -5,6 +5,10 @@ const uuid = require('uuid');
 
 router.get('/', (req, res) => {
     db.query('SELECT * FROM location', (error, results) => {
+        if (error) {
+            console.log(error)
+            res.json({"error": error})
+        }
         res.json(results.rows);
     });
 });

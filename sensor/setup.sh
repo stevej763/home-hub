@@ -10,5 +10,4 @@ cd sensor/
 mkdir logs
 
 sudo raspi-config nonint do_i2c 0
-sudo pip install pimoroni-bme280 --break-system-packages -y
-(crontab -l 2>/dev/null; echo "@reboot /usr/bin/sleep 60; sh /home/steve/dev/sensor/startup.sh >/home/steve/dev/sensor/logs/cronlog 2>&1") | crontab -
+sudo pip install pimoroni-bme280 --break-system-packages

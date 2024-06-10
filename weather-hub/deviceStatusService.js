@@ -5,6 +5,7 @@ const markDeviceAsOffline = () => {
     timestamp.setMinutes(timestamp.getMinutes() - 1);
     db.query('UPDATE device SET status = $1 WHERE status = $2 AND last_active_at < $3::TIMESTAMP', ["OFFLINE", "ACTIVE", timestamp], (error, results) => {
         if (error) {
+            console.log("Failed updating to offline")
             console.log(error);
         } else {
             //console.log(`Marked ${results.rowCount} devices as OFFLINE`)
@@ -15,6 +16,7 @@ const markDeviceAsOffline = () => {
 const markReadyDevicesAsActive = () => {
     db.query('UPDATE device SET status = $1 WHERE status = $2', ["ACTIVE", "READY"], (error, results) => {
         if (error) {
+            console.log("Failed updating to active")
             console.log(error);
         } else {
             console.log(`Marked ${results.rowCount} devices as ACTIVE`)

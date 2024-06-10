@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="26923d1a-6f38-4984-9000-37884bec93de" name="Changes" comment="" />
+    <list default="true" id="26923d1a-6f38-4984-9000-37884bec93de" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../weather-dashboard/.env" beforeDir="false" afterPath="$PROJECT_DIR$/../weather-dashboard/.env" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -75,8 +77,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PY-241.15989.155" />
-        <option value="bundled-python-sdk-babbdf50b680-7c6932dee5e4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.15989.155" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PY-241.17011.127" />
+        <option value="bundled-python-sdk-48aec45f0201-7e9c3bbb6e34-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.17011.127" />
       </set>
     </attachedChunks>
   </component>
@@ -97,6 +99,7 @@
       <workItem from="1715815181286" duration="1723000" />
       <workItem from="1716039514065" duration="2072000" />
       <workItem from="1716116670423" duration="6073000" />
+      <workItem from="1717771767651" duration="21000" />
     </task>
     <servers />
   </component>
