@@ -8,6 +8,7 @@ import { AppBar, Toolbar, Typography } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import DeviceDetail from './pages/DeviceDetail/DeviceDetailPage';
 import { Link } from 'react-router-dom';
+import DoorcamPage from './pages/doorcam/Doorcam';
 
 
 const App = () => {
@@ -19,7 +20,7 @@ const App = () => {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>Weather Station</Typography>
                 <MenuItem component={Link} to="/">Home</MenuItem>
                 <MenuItem component={Link} to="/locations">Locations</MenuItem>
-                <MenuItem component={Link} to="/all-device-data">All Data</MenuItem>
+                <MenuItem component={Link} to="/camera-stream">Camera Stream</MenuItem>
         </Toolbar>
       </AppBar>
     )
@@ -32,6 +33,7 @@ const App = () => {
         <Route exact path="/all-device-data" element={<AllDeviceDataPage/>} />
         <Route exact path={"/device/:deviceUid"} element={<DeviceDetail/>} />
         <Route exact path={"/locations"} element={<LocationConfigurationPage/>} />
+        <Route exact path={"/camera-stream"} element={<DoorcamPage/>} />
         <Route path="*" element={<NotFoundPage/>} />
       </Routes>
     </Router>
