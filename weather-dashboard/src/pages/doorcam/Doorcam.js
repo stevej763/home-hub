@@ -7,7 +7,7 @@ const DoorcamPage = () => {
 
     return (
         <div className='CameraContainer'>
-            <img src={`http://${streamingServer}:${port}/stream`} width="720" alt="Doorcam Stream" />
+            <img src={`http://${streamingServer}:${port}/stream`} width="720" height="415" alt="Doorcam Stream" />
             </div>
     )
 }
