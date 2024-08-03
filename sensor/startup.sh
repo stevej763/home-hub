@@ -2,7 +2,7 @@
 # startup.sh
 
 cd /
-cd /home/steve/dev/home-hub/sensor
+cd /home/steve/home-hub/sensor
 python3 main.py
 cd /
 
