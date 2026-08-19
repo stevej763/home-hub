@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import DeviceOverview from '../../Components/DeviceOverview/DeviceOverview';
 import { getDevices } from '../../api/device';
+import type { Device } from '../../api/types';
 
 const SummaryPage = () => {
-    const [devices, setDevices] = useState([]);
+    const [devices, setDevices] = useState<Device[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     const fetchDevices = async () => {

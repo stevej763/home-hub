@@ -1,19 +1,27 @@
-const RANGES = {
+type Metric = 'temperature' | 'humidity' | 'pressure';
+
+const RANGES: Record<Metric, { min: number; max: number; unit: string; label: string; color: string }> = {
     temperature: { min: -10, max: 40, unit: '°', label: 'Temp', color: '#B8863A' },
     humidity: { min: 0, max: 100, unit: '%', label: 'Hum', color: '#2F6E68' },
     pressure: { min: 950, max: 1050, unit: 'hPa', label: 'Pres', color: '#5B6B72' },
 };
 
-const RADII = { temperature: 50, humidity: 38, pressure: 26 };
+const RADII: Record<Metric, number> = { temperature: 50, humidity: 38, pressure: 26 };
 const STROKE = 7;
 const CENTER = 60;
 
-const clampFraction = (value, min, max) => {
+const clampFraction = (value: number | null, min: number, max: number): number => {
     if (value === null || value === undefined || Number.isNaN(value)) return 0;
     return Math.min(1, Math.max(0, (value - min) / (max - min)));
 };
 
-const Ring = ({ metric, value, dim }) => {
+interface RingProps {
+    metric: Metric;
+    value: number | null;
+    dim: boolean;
+}
+
+const Ring = ({ metric, value, dim }: RingProps) => {
     const { min, max, color } = RANGES[metric];
     const r = RADII[metric];
     const circumference = 2 * Math.PI * r;
@@ -48,6 +56,16 @@ const Ring = ({ metric, value, dim }) => {
     );
 };
 
+interface StationDialProps {
+    temperature?: string | number | null;
+    humidity?: string | number | null;
+    pressure?: string | number | null;
+    size?: number;
+    active?: boolean;
+    showLegend?: boolean;
+    className?: string;
+}
+
 /**
  * The station dial: a concentric-ring instrument readout for a device's
  * three measurements. Outer ring = temperature, middle = humidity,
@@ -61,10 +79,10 @@ const StationDial = ({
     active = true,
     showLegend = true,
     className = '',
-}) => {
-    const temp = temperature !== undefined && temperature !== null ? parseFloat(temperature) : null;
-    const hum = humidity !== undefined && humidity !== null ? parseFloat(humidity) : null;
-    const pres = pressure !== undefined && pressure !== null ? parseFloat(pressure) : null;
+}: StationDialProps) => {
+    const temp = temperature !== undefined && temperature !== null ? parseFloat(String(temperature)) : null;
+    const hum = humidity !== undefined && humidity !== null ? parseFloat(String(humidity)) : null;
+    const pres = pressure !== undefined && pressure !== null ? parseFloat(String(pressure)) : null;
 
     return (
         <div className={`flex items-center gap-4 ${className}`}>
@@ -102,7 +120,7 @@ const StationDial = ({
             </div>
             {showLegend && (
                 <dl className="grid gap-1.5 font-mono text-xs">
-                    {Object.entries(RANGES).map(([metric, meta]) => {
+                    {(Object.entries(RANGES) as [Metric, (typeof RANGES)[Metric]][]).map(([metric, meta]) => {
                         const value = { temperature: temp, humidity: hum, pressure: pres }[metric];
                         return (
                             <div key={metric} className="flex items-baseline gap-2">

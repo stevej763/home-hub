@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, NavLink } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
@@ -71,10 +71,10 @@ const App = () => {
                     <Navigation />
                     <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
                         <Routes>
-                            <Route exact path="/" element={<SummaryPage />} />
-                            <Route exact path="/all-device-data" element={<AllDeviceDataPage />} />
-                            <Route exact path={'/device/:deviceUid'} element={<DeviceDetail />} />
-                            <Route exact path={'/locations'} element={<LocationConfigurationPage />} />
+                            <Route path="/" element={<SummaryPage />} />
+                            <Route path="/all-device-data" element={<AllDeviceDataPage />} />
+                            <Route path="/device/:deviceUid" element={<DeviceDetail />} />
+                            <Route path="/locations" element={<LocationConfigurationPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>
                     </main>

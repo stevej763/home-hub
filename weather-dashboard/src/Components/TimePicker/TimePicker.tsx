@@ -1,4 +1,9 @@
-const PERIODS = [
+interface Period {
+    value: number;
+    label: string;
+}
+
+const PERIODS: Period[] = [
     { value: 1, label: '1h' },
     { value: 3, label: '4h' },
     { value: 7, label: '8h' },
@@ -9,7 +14,12 @@ const PERIODS = [
     { value: 8759, label: '1y' },
 ];
 
-const TimePicker = ({ timePeriod, updateTimePeriod }) => {
+interface TimePickerProps {
+    timePeriod: number;
+    updateTimePeriod: (value: number) => void;
+}
+
+const TimePicker = ({ timePeriod, updateTimePeriod }: TimePickerProps) => {
     return (
         <div
             role="radiogroup"

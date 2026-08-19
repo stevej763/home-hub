@@ -49,13 +49,13 @@ services:
     build:
       context: ./weather-dashboard
       args:
-        # CRA bakes these into the static bundle at build time - they must be
+        # Vite bakes these into the static bundle at build time - they must be
         # reachable from the *browser*, not just from inside the compose network,
         # so these default to the LAN hostname/port convention used elsewhere in
         # this repo (see sensor/main.py's serverIp) rather than the "weather-hub"
         # compose service name. Rebuild this service (--build) after changing them.
-        REACT_APP_API_SERVER: ${WEATHER_DASHBOARD_API_SERVER:-localhost}
-        REACT_APP_API_PORT: ${WEATHER_HUB_PORT:-8100}
+        VITE_API_SERVER: ${WEATHER_DASHBOARD_API_SERVER:-localhost}
+        VITE_API_PORT: ${WEATHER_HUB_PORT:-8100}
     restart: always
     depends_on:
       - weather-hub

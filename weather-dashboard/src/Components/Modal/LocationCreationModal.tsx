@@ -2,7 +2,12 @@ import { Modal, TextField, Button, Box } from '@mui/material';
 import { useState } from 'react';
 import { createLocation } from '../../api/locations';
 
-const LocationCreationModal = ({ show, handleClose }) => {
+interface LocationCreationModalProps {
+    show: boolean;
+    handleClose: () => void;
+}
+
+const LocationCreationModal = ({ show, handleClose }: LocationCreationModalProps) => {
     const [location, setLocation] = useState('');
 
     const handleSubmit = async () => {

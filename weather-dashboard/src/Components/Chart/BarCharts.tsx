@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { getTemperatureData, getHumidityData, getPressureData } from '../../api/measurements';
+import type { IntervalReading } from '../../api/types';
 
 const chartSx = {
     '& .MuiChartsAxis-tickLabel': { fill: '#4A4536', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11 },
@@ -10,9 +11,16 @@ const chartSx = {
     '& .MuiBarElement-root': { rx: 2 },
 };
 
-const ChartPanel = ({ title, unit, color, data }) => {
+interface ChartPanelProps {
+    title: string;
+    unit: string;
+    color: string;
+    data: IntervalReading[];
+}
+
+const ChartPanel = ({ title, unit, color, data }: ChartPanelProps) => {
     const timestamps = data.map((reading) => reading.timestamp);
-    const values = data.map((reading) => reading.average_reading);
+    const values = data.map((reading) => Number(reading.average_reading));
     const hasData = data.length > 0;
 
     return (
@@ -39,8 +47,14 @@ const ChartPanel = ({ title, unit, color, data }) => {
     );
 };
 
-const BarCharts = ({ deviceUid, timePeriod, updateInterval }) => {
-    const getInterval = (hours) => {
+interface BarChartsProps {
+    deviceUid?: string;
+    timePeriod: number;
+    updateInterval: number;
+}
+
+const BarCharts = ({ deviceUid, timePeriod, updateInterval }: BarChartsProps) => {
+    const getInterval = (hours: number) => {
         const to = new Date();
         const from = new Date();
         if (hours > 1) {
@@ -51,9 +65,9 @@ const BarCharts = ({ deviceUid, timePeriod, updateInterval }) => {
         return { from: from.toISOString(), to: to.toISOString() };
     };
 
-    const [temperatureData, setTemperatureData] = useState([]);
-    const [humidityData, setHumidityData] = useState([]);
-    const [pressureData, setPressureData] = useState([]);
+    const [temperatureData, setTemperatureData] = useState<IntervalReading[]>([]);
+    const [humidityData, setHumidityData] = useState<IntervalReading[]>([]);
+    const [pressureData, setPressureData] = useState<IntervalReading[]>([]);
 
     useEffect(() => {
         if (!deviceUid) return;
@@ -69,7 +83,6 @@ const BarCharts = ({ deviceUid, timePeriod, updateInterval }) => {
         fetchTemperature();
         const intervalId = setInterval(fetchTemperature, updateInterval);
         return () => clearInterval(intervalId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deviceUid, timePeriod, updateInterval]);
 
     useEffect(() => {
@@ -86,7 +99,6 @@ const BarCharts = ({ deviceUid, timePeriod, updateInterval }) => {
         fetchPressure();
         const intervalId = setInterval(fetchPressure, updateInterval);
         return () => clearInterval(intervalId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deviceUid, timePeriod, updateInterval]);
 
     useEffect(() => {
@@ -103,7 +115,6 @@ const BarCharts = ({ deviceUid, timePeriod, updateInterval }) => {
         fetchHumidity();
         const intervalId = setInterval(fetchHumidity, updateInterval);
         return () => clearInterval(intervalId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deviceUid, timePeriod, updateInterval]);
 
     return (

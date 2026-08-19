@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getDevices, deleteDevice, activateDevice, clearDeviceData } from '../../api/device';
+import type { Device, DeviceStatus } from '../../api/types';
 
-const STATUS_META = {
+const STATUS_META: Record<DeviceStatus, { label: string; dot: string }> = {
     ACTIVE: { label: 'Live', dot: 'bg-teal' },
     READY: { label: 'Ready', dot: 'bg-brass' },
     CALIBRATING: { label: 'Calibrating', dot: 'bg-brass' },
@@ -12,7 +13,13 @@ const STATUS_META = {
     RETIRED: { label: 'Retired', dot: 'bg-slate' },
 };
 
-const ActionButton = ({ onClick, children, tone = 'default' }) => {
+interface ActionButtonProps {
+    onClick: () => void;
+    children: React.ReactNode;
+    tone?: 'default' | 'danger';
+}
+
+const ActionButton = ({ onClick, children, tone = 'default' }: ActionButtonProps) => {
     const toneClasses = {
         default: 'text-ink-soft hover:text-ink hover:bg-ink/5',
         danger: 'text-rust hover:text-rust hover:bg-rust/10',
@@ -29,7 +36,7 @@ const ActionButton = ({ onClick, children, tone = 'default' }) => {
 };
 
 const AllDeviceDataPage = () => {
-    const [devices, setDevices] = useState([]);
+    const [devices, setDevices] = useState<Device[]>([]);
 
     const fetchDevices = async () => {
         const result = await getDevices();
@@ -42,22 +49,22 @@ const AllDeviceDataPage = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-    const handleDelete = async (deviceUid, deviceName) => {
+    const handleDelete = async (deviceUid: string, deviceName: string) => {
         if (!window.confirm(`Delete ${deviceName}? This removes the station and cannot be undone.`)) return;
         const ok = await deleteDevice(deviceUid);
         if (ok) setDevices((prev) => prev.filter((d) => d.device_uid !== deviceUid));
     };
 
-    const handleActivate = async (deviceUid) => {
+    const handleActivate = async (deviceUid: string) => {
         const ok = await activateDevice(deviceUid);
         if (ok) {
             setDevices((prev) =>
-                prev.map((d) => (d.device_uid === deviceUid ? { ...d, status: 'ACTIVE' } : d))
+                prev.map((d) => (d.device_uid === deviceUid ? { ...d, status: 'ACTIVE' as const } : d))
             );
         }
     };
 
-    const handleClearData = async (deviceUid, deviceName) => {
+    const handleClearData = async (deviceUid: string, deviceName: string) => {
         if (!window.confirm(`Clear all recorded readings for ${deviceName}?`)) return;
         await clearDeviceData(deviceUid);
     };

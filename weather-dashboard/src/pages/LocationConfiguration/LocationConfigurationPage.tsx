@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { getLocations } from '../../api/locations';
 import { LocationCreationModal } from '../../Components/Modal/LocationCreationModal';
+import type { Location } from '../../api/types';
 
 const LocationConfigurationPage = () => {
-    const [locations, setLocations] = useState([]);
+    const [locations, setLocations] = useState<Location[]>([]);
     const [open, setOpen] = useState(false);
 
     const fetchLocations = async () => {

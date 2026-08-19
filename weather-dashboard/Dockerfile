@@ -8,12 +8,13 @@ RUN npm ci
 
 COPY . .
 
-# CRA bakes REACT_APP_* vars into the static bundle at build time, so they
-# must be passed as build args (not runtime container env vars).
-ARG REACT_APP_API_SERVER
-ARG REACT_APP_API_PORT
-ENV REACT_APP_API_SERVER=${REACT_APP_API_SERVER}
-ENV REACT_APP_API_PORT=${REACT_APP_API_PORT}
+# Vite bakes VITE_* vars into the static bundle at build time (import.meta.env
+# references are statically replaced during the build), so they must be
+# passed as build args (not runtime container env vars).
+ARG VITE_API_SERVER
+ARG VITE_API_PORT
+ENV VITE_API_SERVER=${VITE_API_SERVER}
+ENV VITE_API_PORT=${VITE_API_PORT}
 
 RUN npm run build
 

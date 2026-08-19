@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../StationDial/StationDial';
 import { DeviceDetailsModal } from '../Modal/DeviceDetailsModal';
+import type { Device, DeviceStatus, LatestReadings } from '../../api/types';
 
-const STATUS_META = {
+const STATUS_META: Record<DeviceStatus, { label: string; dot: string; pulse: boolean }> = {
     ACTIVE: { label: 'Live', dot: 'bg-teal', pulse: true },
     READY: { label: 'Ready', dot: 'bg-brass', pulse: false },
     CALIBRATING: { label: 'Calibrating', dot: 'bg-brass', pulse: true },
@@ -14,14 +15,19 @@ const STATUS_META = {
     RETIRED: { label: 'Retired', dot: 'bg-slate', pulse: false },
 };
 
-const Rivet = ({ className }) => (
+const Rivet = ({ className }: { className: string }) => (
     <span className={`absolute h-1.5 w-1.5 rounded-full bg-ink/15 shadow-rivet ${className}`} />
 );
 
-const DeviceOverview = ({ device, updateDevices }) => {
-    const [latestReadings, setLatestReadings] = useState({});
+interface DeviceOverviewProps {
+    device: Device;
+    updateDevices: () => void;
+}
+
+const DeviceOverview = ({ device, updateDevices }: DeviceOverviewProps) => {
+    const [latestReadings, setLatestReadings] = useState<LatestReadings>({});
     const [open, setOpen] = useState(false);
-    const handleOpen = (e) => {
+    const handleOpen = (e: React.MouseEvent) => {
         e.preventDefault();
         setOpen(true);
     };

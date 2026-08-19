@@ -4,11 +4,12 @@ import { getDevice, getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../../Components/StationDial/StationDial';
 import BarCharts from '../../Components/Chart/BarCharts';
 import TimePicker from '../../Components/TimePicker/TimePicker';
+import type { Device, LatestReadings } from '../../api/types';
 
 const DeviceDetailPage = () => {
-    const { deviceUid } = useParams();
-    const [device, setDevice] = useState({});
-    const [latestReadings, setLatestReadings] = useState({});
+    const { deviceUid } = useParams<{ deviceUid: string }>();
+    const [device, setDevice] = useState<Partial<Device>>({});
+    const [latestReadings, setLatestReadings] = useState<LatestReadings>({});
     const [timePeriod, setTimePeriod] = useState(23);
     const updateInterval = 10000;
 

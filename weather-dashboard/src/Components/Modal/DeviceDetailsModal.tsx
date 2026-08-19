@@ -1,12 +1,20 @@
 import { Modal, TextField, Button, Box, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { getLocations } from '../../api/locations';
 import { postDeviceChanges } from '../../api/device';
+import type { Device, Location } from '../../api/types';
 
-const DeviceDetailsModal = ({ show, handleClose, device }) => {
+interface DeviceDetailsModalProps {
+    show: boolean;
+    handleClose: () => void;
+    device: Partial<Device>;
+}
+
+const DeviceDetailsModal = ({ show, handleClose, device }: DeviceDetailsModalProps) => {
     const [deviceName, setDeviceName] = useState(device.device_name || '');
     const [location, setLocation] = useState(device.location_uid || '');
-    const [locations, setLocations] = useState([]);
+    const [locations, setLocations] = useState<Location[]>([]);
 
     useEffect(() => {
         if (!show) return;
@@ -20,10 +28,10 @@ const DeviceDetailsModal = ({ show, handleClose, device }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [show]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const payload = {
-            deviceUid: device.device_uid,
+            deviceUid: device.device_uid || '',
             deviceName: deviceName,
             locationUid: location,
         };
@@ -60,7 +68,7 @@ const DeviceDetailsModal = ({ show, handleClose, device }) => {
                                 labelId="device-location-label"
                                 label="Location"
                                 value={location}
-                                onChange={(e) => setLocation(e.target.value)}
+                                onChange={(e: SelectChangeEvent) => setLocation(e.target.value)}
                             >
                                 {locations.map((loc) => (
                                     <MenuItem key={loc.location_uid} value={loc.location_uid}>
