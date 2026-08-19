@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-weatherhub}
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # POSTGRES_DB already creates the "weatherhub" database, so 000_createdb.sql
+      # is intentionally not mounted here - only the schema migrations run.
+      - ./weather-hub/sql/001_device.sql:/docker-entrypoint-initdb.d/001_device.sql:ro
+      - ./weather-hub/sql/002_temperature.sql:/docker-entrypoint-initdb.d/002_temperature.sql:ro
+      - ./weather-hub/sql/003_humidity.sql:/docker-entrypoint-initdb.d/003_humidity.sql:ro
+      - ./weather-hub/sql/004_pressure.sql:/docker-entrypoint-initdb.d/004_pressure.sql:ro
+      - ./weather-hub/sql/005_add_device_last_active_at_column.sql:/docker-entrypoint-initdb.d/005_add_device_last_active_at_column.sql:ro
+      - ./weather-hub/sql/006_location.sql:/docker-entrypoint-initdb.d/006_location.sql:ro
+      - ./weather-hub/sql/007_add_deveice_location_fk.sql:/docker-entrypoint-initdb.d/007_add_deveice_location_fk.sql:ro
+
+  weather-hub:
+    build:
+      context: ./weather-hub
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "${WEATHER_HUB_PORT:-8100}:3000"
+    environment:
+      PORT: 3000
+      DATABASE_HOST: ${DB_HOST:-db}
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${POSTGRES_USER:-postgres}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DATABASE_NAME: ${POSTGRES_DB:-weatherhub}
+      # Must match the URL the dashboard is actually loaded from in the browser
+      # (see WEATHER_DASHBOARD_API_SERVER / WEATHER_DASHBOARD_PORT below).
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8200}
+
+  weather-dashboard:
+    build:
+      context: ./weather-dashboard
+      args:
+        # CRA bakes these into the static bundle at build time - they must be
+        # reachable from the *browser*, not just from inside the compose network,
+        # so these default to the LAN hostname/port convention used elsewhere in
+        # this repo (see sensor/main.py's serverIp) rather than the "weather-hub"
+        # compose service name. Rebuild this service (--build) after changing them.
+        REACT_APP_API_SERVER: ${WEATHER_DASHBOARD_API_SERVER:-localhost}
+        REACT_APP_API_PORT: ${WEATHER_HUB_PORT:-8100}
+    restart: always
+    depends_on:
+      - weather-hub
+    ports:
+      - "${WEATHER_DASHBOARD_PORT:-8200}:80"
+
+volumes:
+  db-data:

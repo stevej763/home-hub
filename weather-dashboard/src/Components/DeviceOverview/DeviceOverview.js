@@ -1,99 +1,105 @@
-import {useEffect, useState} from 'react';
-import './DeviceOverview.css';
-import { Card, CardContent, CardActions, CardActionArea, Button, CardHeader, Avatar, Chip, Typography, Modal } from '@mui/material';
-import { getLatestReadingsForDeviceUid } from '../../api/device';
-import CurrentReadingCharts from '../CurrentReadingCharts/CurrentReadingCharts';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getLatestReadingsForDeviceUid } from '../../api/device';
+import StationDial from '../StationDial/StationDial';
 import { DeviceDetailsModal } from '../Modal/DeviceDetailsModal';
 
-const DeviceOverview = ({device, updateDevices}) => {
+const STATUS_META = {
+    ACTIVE: { label: 'Live', dot: 'bg-teal', pulse: true },
+    READY: { label: 'Ready', dot: 'bg-brass', pulse: false },
+    CALIBRATING: { label: 'Calibrating', dot: 'bg-brass', pulse: true },
+    REGISTERED: { label: 'Registered', dot: 'bg-slate', pulse: false },
+    OFFLINE: { label: 'Offline', dot: 'bg-rust', pulse: false },
+    DISABLED: { label: 'Disabled', dot: 'bg-slate', pulse: false },
+    RETIRED: { label: 'Retired', dot: 'bg-slate', pulse: false },
+};
 
-    const placeholderReadings = {
-        "temperature": "0",
-        "humidity": "0",
-        "pressure": "0",
-    }
+const Rivet = ({ className }) => (
+    <span className={`absolute h-1.5 w-1.5 rounded-full bg-ink/15 shadow-rivet ${className}`} />
+);
 
+const DeviceOverview = ({ device, updateDevices }) => {
     const [latestReadings, setLatestReadings] = useState({});
     const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
+    const handleOpen = (e) => {
+        e.preventDefault();
+        setOpen(true);
+    };
     const handleClose = () => {
-        updateDevices()
+        updateDevices();
         setOpen(false);
-    }
+    };
+
     useEffect(() => {
-        if (!device) {
-            return;
-        } else {
-            const fetchLatestDeviceReadings = async () => {
-                const latestReadings = await getLatestReadingsForDeviceUid(device.device_uid);
-                setLatestReadings(latestReadings)
-            }
-            fetchLatestDeviceReadings();
-            const intervalId = setInterval(fetchLatestDeviceReadings, 5000);
-            return () => clearInterval(intervalId);
-        }
+        if (!device) return;
+        const fetchLatestDeviceReadings = async () => {
+            const readings = await getLatestReadingsForDeviceUid(device.device_uid);
+            setLatestReadings(readings);
+        };
+        fetchLatestDeviceReadings();
+        const intervalId = setInterval(fetchLatestDeviceReadings, 5000);
+        return () => clearInterval(intervalId);
     }, [device]);
 
-    const defaultAvatar = () => {
-        return <Avatar src={process.env.PUBLIC_URL + '/Raspberry_Pi-Logo.wine.png'}/>
-    }
+    const status = STATUS_META[device.status] || STATUS_META.REGISTERED;
+    const isActive = device.status === 'ACTIVE';
 
-    const getStatusColour = (status) => {
-         switch(status) {
-            case 'OFFLINE': return 'error';
-            case 'REGISTERED': return 'info';
-            case 'CALIBRATING': return 'warning';
-            case 'READY': return 'primary';
-            case 'ACTIVE': return 'success';
-            default: return 'primary';
-        }
-    }
-
-    const statusChip = (status) => {
-        const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-        const color = getStatusColour(status);
-        return <Chip label={formattedStatus} color={color}/>
-    }
-
-    const renderContent = (device) => {
-        if (device.status === 'ACTIVE') {
-           return <CurrentReadingCharts reading={latestReadings} width={100} height={100}/>
-        } else {
-            return <CurrentReadingCharts reading={placeholderReadings} width={100} height={100}/>
-
-        }
-
-    }
-
-    const deviceInfo = (device) => {
-        return (
-            <>
-                <Card elevation={4} sx={{ maxWidth: 600 }} className={`deviceCard`}>
-                    <CardActionArea component={Link} to={`/device/${device.device_uid}`}>
-                        <CardHeader 
-                        avatar={defaultAvatar()} 
-                        title={<Typography variant="h5">{device.device_name}</Typography>}
-                        />
-                        <CardContent>
-                            <Typography variant="body1">{device.location_name}</Typography>
-                            {statusChip(device.status)}
-                            {renderContent(device)}
-                        </CardContent>
-                    </CardActionArea>
-                    <CardActions>
-                    <Button onClick={handleOpen}>Device details</Button>
-                    </CardActions>
-                </Card>
-                <DeviceDetailsModal show={open} handleClose={handleClose} device={device}/>
-            </>
-            
-        )
-    }
     return (
-        <div>
-            {deviceInfo(device)}</div>
-    )
-}
+        <>
+            <Link
+                to={`/device/${device.device_uid}`}
+                className="group relative block bg-face rounded-md shadow-face p-5 transition-transform duration-300 hover:-translate-y-1"
+            >
+                <Rivet className="top-2 left-2" />
+                <Rivet className="top-2 right-2" />
+                <Rivet className="bottom-2 left-2" />
+                <Rivet className="bottom-2 right-2" />
+
+                <div className="flex items-start justify-between gap-3 mb-1">
+                    <div className="min-w-0">
+                        <h2 className="font-display font-semibold uppercase tracking-wide text-ink text-xl leading-tight truncate">
+                            {device.device_name}
+                        </h2>
+                        <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 mt-0.5">
+                            {device.location_name || 'Unassigned'}
+                        </p>
+                    </div>
+                    <span className="flex items-center gap-1.5 shrink-0 pt-1">
+                        <span
+                            className={`h-2 w-2 rounded-full ${status.dot} ${status.pulse ? 'animate-lamp' : ''}`}
+                        />
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
+                            {status.label}
+                        </span>
+                    </span>
+                </div>
+
+                <div className="mt-4 flex justify-center">
+                    <StationDial
+                        temperature={latestReadings.temperature}
+                        humidity={latestReadings.humidity}
+                        pressure={latestReadings.pressure}
+                        size={104}
+                        active={isActive}
+                    />
+                </div>
+
+                <div className="mt-5 pt-3 border-t border-ink/10 flex items-center justify-between">
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-brass-dark group-hover:text-brass transition-colors">
+                        View station &rarr;
+                    </span>
+                    <button
+                        type="button"
+                        onClick={handleOpen}
+                        className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 hover:text-ink transition-colors"
+                    >
+                        Configure
+                    </button>
+                </div>
+            </Link>
+            <DeviceDetailsModal show={open} handleClose={handleClose} device={device} />
+        </>
+    );
+};
 
 export default DeviceOverview;

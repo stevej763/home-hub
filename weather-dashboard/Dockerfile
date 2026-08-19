@@ -1,32 +1,28 @@
-# Stage 1: Build the React app
-FROM node:18 AS build
+# Stage 1: build the static React app
+FROM node:22-alpine AS build
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
 COPY . .
 
-# Build the React app
+# CRA bakes REACT_APP_* vars into the static bundle at build time, so they
+# must be passed as build args (not runtime container env vars).
+ARG REACT_APP_API_SERVER
+ARG REACT_APP_API_PORT
+ENV REACT_APP_API_SERVER=${REACT_APP_API_SERVER}
+ENV REACT_APP_API_PORT=${REACT_APP_API_PORT}
+
 RUN npm run build
 
-# Stage 2: Serve the React app using Nginx
+# Stage 2: serve the build with nginx
 FROM nginx:alpine
 
-# Copy the build output to the Nginx HTML directory
 COPY --from=build /app/build /usr/share/nginx/html
-
-# Copy custom Nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose port 80
-EXPOSE 3000
+EXPOSE 80
 
-# Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]

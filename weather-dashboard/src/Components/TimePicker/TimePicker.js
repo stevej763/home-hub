@@ -1,29 +1,42 @@
-import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import './TimePicker.css';
+const PERIODS = [
+    { value: 1, label: '1h' },
+    { value: 3, label: '4h' },
+    { value: 7, label: '8h' },
+    { value: 11, label: '12h' },
+    { value: 23, label: '1d' },
+    { value: 167, label: '1w' },
+    { value: 719, label: '1m' },
+    { value: 8759, label: '1y' },
+];
 
-const TimePicker = ({timePeriod, updateTimePeriod}) => {
+const TimePicker = ({ timePeriod, updateTimePeriod }) => {
     return (
-     <div className='timePicker'>
-        <FormControl variant="filled" sx={{ m: 1, minWidth: 120 }}>
-         <InputLabel id="time-picker-label">Time Period</InputLabel>
-         <Select
-           labelId="time-picker-label"
-           label="Time Period"
-           id="select-time-period"
-           value={timePeriod}
-           onChange={(e) => updateTimePeriod(e.target.value)}>
-           <MenuItem value={1}>One Hour</MenuItem>
-           <MenuItem value={3}>Four Hours</MenuItem>
-           <MenuItem value={7}>Eight Hours</MenuItem>
-           <MenuItem value={11}>Twelve Hours</MenuItem>
-           <MenuItem value={23}>One Day</MenuItem>
-           <MenuItem value={167}>One Week</MenuItem>
-           <MenuItem value={719}>One Month</MenuItem>
-           <MenuItem value={8759}>One Year</MenuItem>
-         </Select>
-       </FormControl>
-     </div>
-    )
-   }
+        <div
+            role="radiogroup"
+            aria-label="Time period"
+            className="inline-flex items-center bg-panel-raised rounded-sm p-1 gap-0.5 overflow-x-auto max-w-full"
+        >
+            {PERIODS.map((period) => {
+                const selected = period.value === timePeriod;
+                return (
+                    <button
+                        key={period.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => updateTimePeriod(period.value)}
+                        className={`font-mono text-xs uppercase tracking-wide px-3 py-1.5 rounded-sm whitespace-nowrap transition-colors ${
+                            selected
+                                ? 'bg-brass text-panel font-medium'
+                                : 'text-face/60 hover:text-face hover:bg-panel-line'
+                        }`}
+                    >
+                        {period.label}
+                    </button>
+                );
+            })}
+        </div>
+    );
+};
 
 export default TimePicker;

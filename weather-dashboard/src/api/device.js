@@ -42,4 +42,40 @@ const postDeviceChanges = async (payload) => {
     }
 }
 
-export { getDevices, getDevice, getLatestReadingsForDeviceUid, postDeviceChanges };
+const deleteDevice = async (deviceUid) => {
+    try {
+        const response = await fetch(`http://${apiServer}:${port}/devices/${deviceUid}`, {
+            method: 'DELETE',
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error deleting device:', error);
+        return false;
+    }
+}
+
+const activateDevice = async (deviceUid) => {
+    try {
+        const response = await fetch(`http://${apiServer}:${port}/devices/activate/${deviceUid}`, {
+            method: 'POST',
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error activating device:', error);
+        return false;
+    }
+}
+
+const clearDeviceData = async (deviceUid) => {
+    try {
+        const response = await fetch(`http://${apiServer}:${port}/devices/clear/${deviceUid}`, {
+            method: 'POST',
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error clearing device data:', error);
+        return false;
+    }
+}
+
+export { getDevices, getDevice, getLatestReadingsForDeviceUid, postDeviceChanges, deleteDevice, activateDevice, clearDeviceData };

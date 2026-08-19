@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const asyncHandler = require('../utils/asyncHandler');
 
 
-router.get('/temperature', (req, res) => {
-    db.query('SELECT reading, device_name, t.device_uid, reading_time, temperature_uid FROM temperature t LEFT JOIN device d ON d.device_uid = t.device_uid ORDER BY t.reading_time DESC LIMIT 1000', (error, results) => {
-        res.json(results.rows);
-    });
-});
+router.get('/temperature', asyncHandler(async (req, res) => {
+    const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, temperature_uid FROM temperature t LEFT JOIN device d ON d.device_uid = t.device_uid ORDER BY t.reading_time DESC LIMIT 1000');
+    res.json(results.rows);
+}));
 
 const caluculateGraphUnits = (from, to) => {
     const date1 = new Date(from);
@@ -27,10 +27,10 @@ const caluculateGraphUnits = (from, to) => {
     return 'month'
     }
 
-router.get('/temperature/interval', (req, res) => {
+router.get('/temperature/interval', asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const truncation = caluculateGraphUnits(from, to)
-    db.query(`
+    const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
             date_trunc($3, MIN($1)::TIMESTAMP),
@@ -54,21 +54,16 @@ router.get('/temperature/interval', (req, res) => {
     LEFT JOIN temperature t ON date_trunc($3, t.reading_time) = di.timestamp AND t.device_uid = di.device_uid
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, truncation], (error, results) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        res.json(results.rows);
-    });
-});
+    `, [from, to, truncation]);
+    res.json(results.rows);
+}));
 
-router.get('/temperature/interval/:deviceUid', (req, res) => {
+router.get('/temperature/interval/:deviceUid', asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
     const interval = `1 ${units}`
-    db.query(`
+    const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
             date_trunc($4, MIN($1)::TIMESTAMP),
@@ -93,21 +88,16 @@ router.get('/temperature/interval/:deviceUid', (req, res) => {
     WHERE di.device_uid = $3
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, deviceUid, units, interval], (error, results) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        res.json(results.rows);
-    });
-});
+    `, [from, to, deviceUid, units, interval]);
+    res.json(results.rows);
+}));
 
-router.get('/pressure/interval/:deviceUid', (req, res) => {
+router.get('/pressure/interval/:deviceUid', asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
     const interval = `1 ${units}`
-    db.query(`
+    const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
             date_trunc($4, MIN($1)::TIMESTAMP),
@@ -132,21 +122,16 @@ router.get('/pressure/interval/:deviceUid', (req, res) => {
     WHERE di.device_uid = $3
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, deviceUid, units, interval], (error, results) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        res.json(results.rows);
-    });
-});
+    `, [from, to, deviceUid, units, interval]);
+    res.json(results.rows);
+}));
 
-router.get('/humidity/interval/:deviceUid', (req, res) => {
+router.get('/humidity/interval/:deviceUid', asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
     const interval = `1 ${units}`
-    db.query(`
+    const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
             date_trunc($4, MIN($1)::TIMESTAMP),
@@ -171,19 +156,14 @@ router.get('/humidity/interval/:deviceUid', (req, res) => {
     WHERE di.device_uid = $3
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, deviceUid, units, interval], (error, results) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        res.json(results.rows);
-    });
-});
+    `, [from, to, deviceUid, units, interval]);
+    res.json(results.rows);
+}));
 
-router.get('/pressure/interval', (req, res) => {
+router.get('/pressure/interval', asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const truncation = caluculateGraphUnits(from, to);
-    db.query(`
+    const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
             date_trunc($3, MIN($1)::TIMESTAMP),
@@ -207,15 +187,14 @@ router.get('/pressure/interval', (req, res) => {
     LEFT JOIN pressure p ON date_trunc($3, p.reading_time) = di.timestamp AND p.device_uid = di.device_uid
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, truncation], (error, results) => {
-        res.json(results.rows);
-    });
-});
+    `, [from, to, truncation]);
+    res.json(results.rows);
+}));
 
-router.get('/humidity/interval', (req, res) => {
+router.get('/humidity/interval', asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const truncation = caluculateGraphUnits(from, to);
-    db.query(`
+    const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
             date_trunc($3, MIN($1)::TIMESTAMP),
@@ -239,128 +218,109 @@ router.get('/humidity/interval', (req, res) => {
     LEFT JOIN humidity h ON date_trunc($3, h.reading_time) = di.timestamp AND h.device_uid = di.device_uid
     GROUP BY di.timestamp, di.device_uid, di.device_name
     ORDER BY di.timestamp DESC;
-    `, [from, to, truncation], (error, results) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        res.json(results.rows);
-    });
-});
+    `, [from, to, truncation]);
+    res.json(results.rows);
+}));
 
-router.get('/latest', (req, res) => {
-    db.query(`
-    SELECT d.device_name, d.device_uid, 
+router.get('/latest', asyncHandler(async (req, res) => {
+    const results = await db.query(`
+    SELECT d.device_name, d.device_uid,
             (SELECT reading FROM temperature WHERE device_uid = d.device_uid ORDER BY id DESC LIMIT 1) AS temperature,
             (SELECT reading FROM humidity WHERE device_uid = d.device_uid ORDER BY id DESC LIMIT 1) AS humidity,
             (SELECT reading FROM pressure WHERE device_uid = d.device_uid ORDER BY id DESC LIMIT 1) AS pressure
         FROM device d
-    `, (error, results) => {
-        res.json(results.rows);
-    });
-});
+    `);
+    res.json(results.rows);
+}));
 
-router.get('/latest/:deviceUid', (req, res) => {
+router.get('/latest/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
-    db.query(`
+    const results = await db.query(`
     WITH latest_temperature AS (
-        SELECT reading, reading_time, device_uid 
-        FROM temperature 
-        WHERE device_uid = $1 
-        ORDER BY reading_time DESC 
+        SELECT reading, reading_time, device_uid
+        FROM temperature
+        WHERE device_uid = $1
+        ORDER BY reading_time DESC
         LIMIT 1
     ),
     latest_humidity AS (
         SELECT reading, reading_time, device_uid
-        FROM humidity 
-        WHERE device_uid = $1 
-        ORDER BY id DESC 
+        FROM humidity
+        WHERE device_uid = $1
+        ORDER BY id DESC
         LIMIT 1
     ),
     latest_pressure AS (
         SELECT reading, reading_time, device_uid
-        FROM pressure 
-        WHERE device_uid = $1 
-        ORDER BY id DESC 
+        FROM pressure
+        WHERE device_uid = $1
+        ORDER BY id DESC
         LIMIT 1
     )
-    SELECT 
-        d.device_name, 
-        d.device_uid, 
-        lt.reading AS temperature, 
+    SELECT
+        d.device_name,
+        d.device_uid,
+        lt.reading AS temperature,
         lt.reading_time AS temperature_timestamp,
-        lh.reading AS humidity, 
+        lh.reading AS humidity,
         lh.reading_time AS humidity_timestamp,
-        lp.reading AS pressure, 
+        lp.reading AS pressure,
         lp.reading_time AS pressure_timestamp
     FROM device d
     LEFT JOIN latest_temperature lt ON lt.device_uid = d.device_uid
     LEFT JOIN latest_humidity lh ON lh.device_uid = d.device_uid
     LEFT JOIN latest_pressure lp ON lp.device_uid = d.device_uid
     WHERE d.device_uid = $1
-    `, [deviceUid], (error, results) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        res.json(results.rows[0]);
-    });
-});
+    `, [deviceUid]);
+    res.json(results.rows[0]);
+}));
 
 
 
-router.get('/temperature/latest/:deviceUid', (req, res) => {
+router.get('/temperature/latest/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
-    db.query('SELECT reading, device_name, t.device_uid, reading_time, temperature_uid FROM temperature t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid], (error, results) => {
-        res.json(results.rows[0]);
-    });
-});
+    const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, temperature_uid FROM temperature t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid]);
+    res.json(results.rows[0]);
+}));
 
-router.get('/humidity/latest/:deviceUid', (req, res) => { 
+router.get('/humidity/latest/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
-    db.query('SELECT reading, device_name, t.device_uid, reading_time, humidity_uid FROM humidity t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid], (error, results) => {
-        res.json(results.rows);
-    });
-});
+    const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, humidity_uid FROM humidity t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid]);
+    res.json(results.rows);
+}));
 
-router.get('/pressure/latest/:deviceUid', (req, res) => {
+router.get('/pressure/latest/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
-    db.query('SELECT reading, device_name, t.device_uid, reading_time, pressure_uid FROM pressure t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid], (error, results) => {
-        res.json(results.rows);
-    });
-});
+    const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, pressure_uid FROM pressure t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid]);
+    res.json(results.rows);
+}));
 
-router.get('/temperature/:device_uid', (req, res) => {
+router.get('/temperature/:device_uid', asyncHandler(async (req, res) => {
     const device_uid = req.params.device_uid;
-    db.query('SELECT * FROM temperature WHERE device_uid = $1', [device_uid], (error, results) => {
-        res.json(results.rows);
-    });
-});
+    const results = await db.query('SELECT * FROM temperature WHERE device_uid = $1', [device_uid]);
+    res.json(results.rows);
+}));
 
-router.get('/humidity', (req, res) => {
-    db.query('SELECT reading, device_name, h.device_uid, reading_time, humidity_uid FROM humidity h LEFT JOIN device d ON d.device_uid = h.device_uid ORDER BY h.reading_time DESC LIMIT 1000', (error, results) => {
-        res.json(results.rows);
-    });
-});
+router.get('/humidity', asyncHandler(async (req, res) => {
+    const results = await db.query('SELECT reading, device_name, h.device_uid, reading_time, humidity_uid FROM humidity h LEFT JOIN device d ON d.device_uid = h.device_uid ORDER BY h.reading_time DESC LIMIT 1000');
+    res.json(results.rows);
+}));
 
-router.get('/humidity/:device_uid', (req, res) => {
+router.get('/humidity/:device_uid', asyncHandler(async (req, res) => {
     const device_uid = req.params.device_uid;
-    db.query('SELECT * FROM humidity WHERE device_uid = $1', [device_uid], (error, results) => {
-        res.json(results.rows);
-    });
-});
+    const results = await db.query('SELECT * FROM humidity WHERE device_uid = $1', [device_uid]);
+    res.json(results.rows);
+}));
 
-router.get('/pressure', (req, res) => {
-    db.query('SELECT reading, device_name, p.device_uid, reading_time, pressure_uid FROM pressure p LEFT JOIN device d ON d.device_uid = p.device_uid ORDER BY p.reading_time DESC LIMIT 1000', (error, results) => {
-        res.json(results.rows);
-    });
-});
+router.get('/pressure', asyncHandler(async (req, res) => {
+    const results = await db.query('SELECT reading, device_name, p.device_uid, reading_time, pressure_uid FROM pressure p LEFT JOIN device d ON d.device_uid = p.device_uid ORDER BY p.reading_time DESC LIMIT 1000');
+    res.json(results.rows);
+}));
 
-router.get('/pressure/:device_uid', (req, res) => {
+router.get('/pressure/:device_uid', asyncHandler(async (req, res) => {
     const device_uid = req.params.device_uid;
-    db.query('SELECT * FROM pressure WHERE device_uid = $1', [device_uid], (error, results) => {
-        res.json(results.rows);
-    });
-});
+    const results = await db.query('SELECT * FROM pressure WHERE device_uid = $1', [device_uid]);
+    res.json(results.rows);
+}));
 
 module.exports = router;

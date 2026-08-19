@@ -1,17 +1,17 @@
-import { useEffect } from 'react';
-import { useState } from 'react';
-import './SummaryPage.css'
-import DeviceOverview from '../../Components/DeviceOverview/DeviceOverview'
+import { useEffect, useState } from 'react';
+import DeviceOverview from '../../Components/DeviceOverview/DeviceOverview';
 import { getDevices } from '../../api/device';
-const SummaryPage = () => {
 
+const SummaryPage = () => {
     const [devices, setDevices] = useState([]);
-    
+    const [loaded, setLoaded] = useState(false);
+
     const fetchDevices = async () => {
-        const devices = await getDevices();
-        const sortedDevices = devices.sort((a, b) => a.device_name.localeCompare(b.device_name));
-        setDevices(sortedDevices)
-    }
+        const result = await getDevices();
+        const sortedDevices = [...result].sort((a, b) => a.device_name.localeCompare(b.device_name));
+        setDevices(sortedDevices);
+        setLoaded(true);
+    };
 
     useEffect(() => {
         fetchDevices();
@@ -19,15 +19,28 @@ const SummaryPage = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-    const deviceGrid = (devices) => {
-        return devices.sort().map((device) => <DeviceOverview key={device.id} device={device} updateDevices={fetchDevices}/>)
+    if (loaded && devices.length === 0) {
+        return (
+            <div className="text-center py-24">
+                <p className="font-display uppercase tracking-widest text-face/60 text-lg">
+                    No stations registered yet
+                </p>
+                <p className="font-mono text-sm text-face/40 mt-2">
+                    Power on a sensor and it will check in here automatically.
+                </p>
+            </div>
+        );
     }
 
     return (
-        <div className='DeviceGrid'>
-            {deviceGrid(devices)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {devices.map((device, i) => (
+                <div key={device.id} style={{ animationDelay: `${i * 60}ms` }} className="animate-rise">
+                    <DeviceOverview device={device} updateDevices={fetchDevices} />
+                </div>
+            ))}
         </div>
-    )
-}
+    );
+};
 
 export default SummaryPage;
