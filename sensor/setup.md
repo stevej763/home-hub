@@ -13,5 +13,7 @@ sudo apt install git
 sudo raspi-config nonint do_i2c 0
 ## Install bme280 package globally (so cronjob can run it)
 sudo pip install pimoroni-bme280 --break-system-packages
+## configure server address (optional, defaults to home-hub:3001)
+`cp .env.example .env` and edit `SENSOR_SERVER_IP`/`SENSOR_SERVER_PORT` if the hub isn't reachable at the defaults
 ## Add cronjob
 sh createCron.sh

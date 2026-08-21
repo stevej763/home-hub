@@ -38,6 +38,8 @@ Requires a `.env` with `VITE_API_SERVER`, `VITE_API_PORT` (weather-hub location)
 ### sensor (Raspberry Pi only)
 Not meant to run in a normal dev environment — it depends on Pi-specific hardware libraries (`smbus2`, `bme280`) and is deployed via `git clone` + `startup.sh` run from a `@reboot` crontab entry (see `sensor/setup.md` / `sensor/setup.sh`). Treat changes to this as cross-referenced with the physical hardware setup rather than something to run locally.
 
+Hub address is configurable via `SENSOR_SERVER_IP`/`SENSOR_SERVER_PORT` (defaults: `home-hub`/`3001`) — copy `sensor/.env.example` to `sensor/.env` and edit if needed. Since it's launched from cron (`@reboot`), which doesn't source shell profiles, `startup.sh` sources `sensor/.env` itself before running `main.py` rather than relying on exported env vars.
+
 ### Full stack via Docker (repo root)
 ```
 cp .env.example .env   # first time only; edit values as needed

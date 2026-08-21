@@ -18,8 +18,16 @@ bme280 = None
 deviceUid = ""
 ipAddress = ""
 hostname = ""
-serverIp = "home-hub"
+serverIp = os.environ.get("SENSOR_SERVER_IP", "home-hub")
+serverPort = int(os.environ.get("SENSOR_SERVER_PORT", 3001))
 calibrationEnabled = True
+
+REQUEST_TIMEOUT_SECONDS = 10
+
+session = requests.Session()
+
+def buildUrl(path):
+    return "http://{0}:{1}{2}".format(serverIp, serverPort, path)
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logger = logging.getLogger()
@@ -103,8 +111,11 @@ def sendData():
         "humidity": humidity
     }
     logger.info("Sending data temperature=%s pressure=%s humidity=%s", temperature, pressure, humidity)
-    response = requests.post(url="http://{0}:3001/measurement/record".format(serverIp), json=data)
-    logger.info("Response: %s", response.json())
+    response = session.post(url=buildUrl("/measurement/record"), json=data, timeout=REQUEST_TIMEOUT_SECONDS)
+    if not response.ok:
+        logger.warning("Hub rejected measurement statusCode=%s body=%s", response.status_code, response.text)
+    else:
+        logger.info("Response: %s", response.json())
 
 def getIpAddress():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -133,7 +144,9 @@ def registerWithHub():
     while not connected:
         logger.info("Sending registration data deviceUid=%s device_name=%s ipAddress=%s", deviceUid, hostname, ipAddress)
         try:
-            registration = requests.post(url="http://{0}:3001/devices/register".format(serverIp), json=registration_data)
+            registration = session.post(url=buildUrl("/devices/register"), json=registration_data, timeout=REQUEST_TIMEOUT_SECONDS)
+            if not registration.ok:
+                raise Exception("Hub returned statusCode={0} body={1}".format(registration.status_code, registration.text))
             response = json.loads(registration.text)
             if response.get('result') == 'success':
                 logger.info("Registration outcome: " + response['result'])
@@ -183,20 +196,23 @@ def initialise():
     time.sleep(2)
 
 def getDeviceStatus():
-    response = requests.get(url=("http://{0}:3001/devices/status/{1}".format(serverIp, deviceUid)))
-    logger.info("response %s", response.json())
-    return response.json()['status']
+    response = session.get(url=buildUrl("/devices/status/{0}".format(deviceUid)), timeout=REQUEST_TIMEOUT_SECONDS)
+    if not response.ok:
+        raise Exception("Failed to get device status statusCode={0} body={1}".format(response.status_code, response.text))
+    body = response.json()
+    logger.info("response %s", body)
+    return body['status']
 
 
 def publishCalibration():
     logger.info("Publishing calibration")
-    response = requests.post(url="http://{0}:3001/devices/status/calibrating/{1}".format(serverIp, deviceUid))
-    print(response.text)
+    response = session.post(url=buildUrl("/devices/status/calibrating/{0}".format(deviceUid)), timeout=REQUEST_TIMEOUT_SECONDS)
+    logger.info("Publish calibration response: %s", response.text)
 
 def publishReadyStatus():
     logger.info("Publishing ready status")
-    response = requests.post(url="http://{0}:3001/devices/status/ready/{1}".format(serverIp, deviceUid))
-    print(response.text)
+    response = session.post(url=buildUrl("/devices/status/ready/{0}".format(deviceUid)), timeout=REQUEST_TIMEOUT_SECONDS)
+    logger.info("Publish ready status response: %s", response.text)
 
 def initHardware():
     global bus, bme280
