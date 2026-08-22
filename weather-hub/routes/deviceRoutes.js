@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const asyncHandler = require('../utils/asyncHandler');
+const logger = require('../logger');
 
 const DEVICE_STATUS = [
     "REGISTERED",
@@ -14,13 +15,11 @@ const DEVICE_STATUS = [
 ]
 
 router.get('/', asyncHandler(async (req, res) => {
-    console.log("Getting all devices")
     const results = await db.query('SELECT * FROM device LEFT JOIN location ON device.location_uid = location.location_uid');
     res.json(results.rows);
 }));
 
 router.get('/t', asyncHandler(async (req, res) => {
-    console.log("Getting all devices")
     const results = await db.query(`SELECT * FROM device`);
     res.json(results.rows);
 }));
@@ -40,26 +39,25 @@ router.get('/:id', asyncHandler(async (req, res) => {
 router.post('/status/calibrating/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     await db.query('UPDATE device SET status = $1 WHERE device_uid = $2', ["CALIBRATING", deviceUid]);
-    console.log(`Marking device ${deviceUid} as CALIBRATING`)
+    logger.info('Device status updated', { deviceUid, status: 'CALIBRATING' });
     res.json({"result": "success", "device_id": deviceUid, "message": "Device status set to CALIBRATING"});
 }));
 
 router.post('/status/ready/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     await db.query('UPDATE device SET status = $1 WHERE device_uid = $2', ["READY", deviceUid]);
-    console.log(`Marking device ${deviceUid} as READY`)
+    logger.info('Device status updated', { deviceUid, status: 'READY' });
     res.json({"result": "success", "device_id": deviceUid, "message": "Device status set to READY"});
 }));
 
 
 router.post('/register', asyncHandler(async (req, res) => {
     const { device_uid, device_name, ip_address } = req.body;
-    console.log(device_uid, device_name, ip_address)
 
     const existing = await db.query('SELECT * FROM device WHERE device_uid = $1', [device_uid]);
     if (existing.rows.length > 0) {
         await db.query('UPDATE device SET status = $1 WHERE device_uid = $2', ["REGISTERED", device_uid]);
-        console.log(`Marking device ${device_uid} as REGISTERED`)
+        logger.info('Device re-registered', { deviceUid: device_uid, status: 'REGISTERED' });
         res.json({"result": "success", "device_id": device_uid, "message": "Device already exists. Device status set to REGISTERED"});
         return;
     }
@@ -67,20 +65,18 @@ router.post('/register', asyncHandler(async (req, res) => {
     const timestamp = new Date();
     await db.query('INSERT INTO device (device_uid, device_name, ip_address, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)',
         [device_uid, device_name, ip_address, "REGISTERED", timestamp, timestamp]);
-    console.log("Successfully registered device device_uid: ", device_uid)
+    logger.info('Device registered', { deviceUid: device_uid, deviceName: device_name, ipAddress: ip_address });
     res.json({"result": "success", "device_uid": device_uid});
 }));
 
 router.post('/update', asyncHandler(async (req, res) => {
     const { deviceUid, deviceName, locationUid } = req.body;
-    console.log(deviceName, deviceUid, locationUid)
     const results = await db.query('UPDATE device SET device_name = $1, location_uid = $2 WHERE device_uid = $3', [deviceName, locationUid, deviceUid]);
-    console.log(results)
+    logger.info('Device updated', { deviceUid, deviceName, locationUid, rowCount: results.rowCount });
     res.json({"result": "success", "message": "Device details updated successfully"});
 }));
 
 router.post('/clear/:deviceUid', asyncHandler(async (req, res) => {
-    console.log("Clearing device: ", req.params.deviceUid)
     const deviceUid = req.params.deviceUid;
     const client = await db.connect();
     try {
@@ -95,14 +91,15 @@ router.post('/clear/:deviceUid', asyncHandler(async (req, res) => {
     } finally {
         client.release();
     }
+    logger.info('Device data cleared', { deviceUid });
     res.json({"result": "success", "message": "Device data cleared successfully"});
 }));
 
 
 router.post('/retire/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
-    console.log(deviceUid)
     await db.query('UPDATE device SET status = $1 WHERE device_uid = $2', ["RETIRED", deviceUid]);
+    logger.info('Device status updated', { deviceUid, status: 'RETIRED' });
     res.json({"result": "success", "device_id": deviceUid});
 }));
 
@@ -110,15 +107,14 @@ router.post('/retire/:deviceUid', asyncHandler(async (req, res) => {
 router.delete('/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     const results = await db.query('DELETE FROM device WHERE device_uid = $1', [deviceUid]);
-    console.log(results)
+    logger.info('Device deleted', { deviceUid, rowCount: results.rowCount });
     res.json({"result": "success", "device_id": deviceUid, "message": "Device deleted successfully"});
 }));
 
 router.post('/activate/:deviceUid', asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
-    console.log(deviceUid)
     await db.query('UPDATE device SET status = $1 WHERE device_uid = $2', ["ACTIVE", deviceUid]);
-    console.log(`Marking device ${deviceUid} as ACTIVE`)
+    logger.info('Device status updated', { deviceUid, status: 'ACTIVE' });
     res.json({"result": "success", "device_id": deviceUid});
 }));
 

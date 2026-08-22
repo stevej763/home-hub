@@ -1,7 +1,9 @@
 require('dotenv').config()
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
 const {startCronJobs} = require('./cronService.js');
+const logger = require('./logger');
+const requestLogger = require('./middleware/requestLogger');
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -9,6 +11,8 @@ const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+app.use(requestLogger);
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -18,7 +22,7 @@ app.use(cors({
             callback(null, true);
             return;
         }
-        console.log(`Blocked CORS request from origin: ${origin}`);
+        logger.warn('Blocked CORS request', { origin });
         callback(null, false);
     }
 }));
@@ -35,12 +39,17 @@ app.use('/readings', readingsRouter);
 app.use('/locations', locationRouter)
 
 app.use((err, req, res, next) => {
-    console.error(err);
+    logger.error('Unhandled request error', {
+        method: req.method,
+        path: req.originalUrl,
+        error: err.message,
+        stack: err.stack,
+    });
     res.status(500).json({ error: 'Internal server error' });
 });
 
 startCronJobs();
 
 app.listen(port, () => {
-    console.log(`App listening at http://localhost:${port}`);
+    logger.info('Server started', { port });
 });

@@ -1,9 +1,12 @@
 const { Pool } = require('pg');
+const logger = require('./logger');
 
-console.log("db user:", process.env.DATABASE_USER)
-console.log("db host:", process.env.DATABASE_HOST)
-console.log("db db:", process.env.DATABASE_NAME)
-console.log("db port:", process.env.DATABASE_PORT)
+logger.info('Connecting to database', {
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT,
+    database: process.env.DATABASE_NAME,
+    user: process.env.DATABASE_USER,
+});
 
 const pool = new Pool({
     user: process.env.DATABASE_USER,
@@ -12,4 +15,9 @@ const pool = new Pool({
     password: process.env.DATABASE_PASSWORD,
     port: process.env.DATABASE_PORT
 });
+
+pool.on('error', (error) => {
+    logger.error('Unexpected database pool error', { error: error.message });
+});
+
 module.exports = pool;
