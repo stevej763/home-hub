@@ -18,6 +18,9 @@ interface ChartPanelProps {
     data: IntervalReading[];
 }
 
+const formatTimestampLabel = (isoTimestamp: string) =>
+    new Date(isoTimestamp).toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+
 const ChartPanel = ({ title, unit, color, data }: ChartPanelProps) => {
     const timestamps = data.map((reading) => reading.timestamp);
     const values = data.map((reading) => Number(reading.average_reading));
@@ -31,7 +34,13 @@ const ChartPanel = ({ title, unit, color, data }: ChartPanelProps) => {
             </div>
             {hasData ? (
                 <BarChart
-                    xAxis={[{ id: 'time', data: timestamps, scaleType: 'band', tickLabelStyle: { angle: 0 } }]}
+                    xAxis={[{
+                        id: 'time',
+                        data: timestamps,
+                        scaleType: 'band',
+                        tickLabelStyle: { angle: 0 },
+                        valueFormatter: formatTimestampLabel,
+                    }]}
                     series={[{ data: values, color }]}
                     height={220}
                     margin={{ left: 40, right: 10, top: 10, bottom: 30 }}

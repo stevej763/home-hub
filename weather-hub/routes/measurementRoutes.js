@@ -8,7 +8,7 @@ const { addLatestDeviceActivity } = require('../deviceStatusService');
 
 router.post('/record', asyncHandler(async (req, res) => {
     const { device_uid, temperature, humidity, pressure } = req.body;
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date();
 
     const device = await db.query('SELECT status FROM device WHERE device_uid = $1', [device_uid]);
     if (device.rows.length === 0 || device.rows[0].status !== "ACTIVE") {

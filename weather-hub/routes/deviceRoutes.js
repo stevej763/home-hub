@@ -64,7 +64,7 @@ router.post('/register', asyncHandler(async (req, res) => {
         return;
     }
 
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date();
     await db.query('INSERT INTO device (device_uid, device_name, ip_address, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)',
         [device_uid, device_name, ip_address, "REGISTERED", timestamp, timestamp]);
     console.log("Successfully registered device device_uid: ", device_uid)

@@ -33,8 +33,8 @@ router.get('/temperature/interval', asyncHandler(async (req, res) => {
     const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc($3, MIN($1)::TIMESTAMP),
-            date_trunc($3, MAX($2)::TIMESTAMP),
+            date_trunc($3, MIN($1)::TIMESTAMPTZ),
+            date_trunc($3, MAX($2)::TIMESTAMPTZ),
             interval '1 ${truncation}'
         ) AS timestamp
         FROM temperature t
@@ -66,8 +66,8 @@ router.get('/temperature/interval/:deviceUid', asyncHandler(async (req, res) => 
     const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc($4, MIN($1)::TIMESTAMP),
-            date_trunc($4, MAX($2)::TIMESTAMP),
+            date_trunc($4, MIN($1)::TIMESTAMPTZ),
+            date_trunc($4, MAX($2)::TIMESTAMPTZ),
             ($5)::INTERVAL
         ) AS timestamp
         FROM temperature t
@@ -100,8 +100,8 @@ router.get('/pressure/interval/:deviceUid', asyncHandler(async (req, res) => {
     const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc($4, MIN($1)::TIMESTAMP),
-            date_trunc($4, MAX($2)::TIMESTAMP),
+            date_trunc($4, MIN($1)::TIMESTAMPTZ),
+            date_trunc($4, MAX($2)::TIMESTAMPTZ),
             ($5)::INTERVAL
         ) AS timestamp
         FROM pressure p
@@ -134,8 +134,8 @@ router.get('/humidity/interval/:deviceUid', asyncHandler(async (req, res) => {
     const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc($4, MIN($1)::TIMESTAMP),
-            date_trunc($4, MAX($2)::TIMESTAMP),
+            date_trunc($4, MIN($1)::TIMESTAMPTZ),
+            date_trunc($4, MAX($2)::TIMESTAMPTZ),
             ($5)::INTERVAL
         ) AS timestamp
         FROM humidity h
@@ -166,8 +166,8 @@ router.get('/pressure/interval', asyncHandler(async (req, res) => {
     const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc($3, MIN($1)::TIMESTAMP),
-            date_trunc($3, MAX($2)::TIMESTAMP),
+            date_trunc($3, MIN($1)::TIMESTAMPTZ),
+            date_trunc($3, MAX($2)::TIMESTAMPTZ),
             interval '1 ${truncation}'
         ) AS timestamp
         FROM pressure p
@@ -197,8 +197,8 @@ router.get('/humidity/interval', asyncHandler(async (req, res) => {
     const results = await db.query(`
     WITH intervals AS (
         SELECT generate_series(
-            date_trunc($3, MIN($1)::TIMESTAMP),
-            date_trunc($3, MAX($2)::TIMESTAMP),
+            date_trunc($3, MIN($1)::TIMESTAMPTZ),
+            date_trunc($3, MAX($2)::TIMESTAMPTZ),
             interval '1 ${truncation}'
         ) AS timestamp
         FROM humidity h

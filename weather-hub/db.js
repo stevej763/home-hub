@@ -1,8 +1,4 @@
-const { Pool, types } = require('pg');
-const pgtypes = types;
-pgtypes.setTypeParser(1114, function(stringValue) {
-return stringValue;
-});
+const { Pool } = require('pg');
 
 console.log("db user:", process.env.DATABASE_USER)
 console.log("db host:", process.env.DATABASE_HOST)

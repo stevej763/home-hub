@@ -4,7 +4,7 @@ const markDeviceAsOffline = async () => {
     const timestamp = new Date();
     timestamp.setMinutes(timestamp.getMinutes() - 1);
     try {
-        await db.query('UPDATE device SET status = $1 WHERE status = $2 AND last_active_at < $3::TIMESTAMP', ["OFFLINE", "ACTIVE", timestamp]);
+        await db.query('UPDATE device SET status = $1 WHERE status = $2 AND last_active_at < $3::TIMESTAMPTZ', ["OFFLINE", "ACTIVE", timestamp]);
     } catch (error) {
         console.log("Failed updating to offline")
         console.log(error);
