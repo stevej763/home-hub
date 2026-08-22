@@ -47,13 +47,18 @@ Hub address is configurable via `SENSOR_SERVER_IP`/`SENSOR_SERVER_PORT` (default
 cp .env.example .env   # first time only; edit values as needed
 docker compose up -d --build
 ```
-Brings up four services together:
-- `db` — Postgres, data persisted in a named volume.
-- `migrate` — runs `npm run migrate` (node-pg-migrate, see above) against `db` once and exits; built from `weather-hub/Dockerfile` like `weather-hub` itself, just with the container command overridden.
-- `weather-hub` — built from `weather-hub/Dockerfile`, waits for `migrate` to exit successfully (`condition: service_completed_successfully`) before starting, then talks to `db` over the compose network.
+`compose.yaml` is the prod-shaped base — it always runs `migrate` (against whatever `DATABASE_HOST`/`DATABASE_PORT`/etc. `.env` points it at), then `weather-hub`, then `weather-dashboard`:
+- `migrate` — runs `npm run migrate` (node-pg-migrate, see above) once and exits; built from `weather-hub/Dockerfile` like `weather-hub` itself, just with the container command overridden.
+- `weather-hub` — waits for `migrate` to exit successfully (`condition: service_completed_successfully`) before starting.
 - `weather-dashboard` — built from `weather-dashboard/Dockerfile` (Vite build → nginx).
 
-Host ports and Postgres credentials come from `.env` at the repo root (see `.env.example`) rather than being hardcoded in the compose file. Container-internal ports/hostnames (`PORT: 3000`, `DATABASE_HOST: db`, `DATABASE_PORT: 5432`, the container side of every `ports:` mapping) are hardcoded directly in `compose.yaml` rather than templated — they're compose-network-internal and never need to vary per deployment, only the host-side ports and credentials do.
+`compose.override.yaml` is auto-merged on top by plain `docker compose` commands (no flag needed — this is Compose's standard override-file convention) and adds the one piece a prod deploy against an external database doesn't need:
+- `db` — Postgres, data persisted in a named volume.
+- a `depends_on: db: condition: service_healthy` override on `migrate`, so it waits for the local `db` to be ready before running.
+
+**Prod / external database:** run `docker compose -f compose.yaml up -d --build` (explicitly excluding the override file, or just don't ship it to the prod host). `db` is never created — `migrate` and `weather-hub` both connect directly to `DATABASE_HOST`/`PGHOST` from `.env`, which must point at the external Postgres instance (already created ahead of time — `migrate` only manages schema, not instance creation).
+
+Host ports and Postgres credentials come from `.env` at the repo root (see `.env.example`) rather than being hardcoded in the compose files. Container-internal ports/hostnames (`PORT: 3000`, `DATABASE_HOST: db`, the container side of every `ports:` mapping) are hardcoded directly in `compose.yaml`/`compose.override.yaml` rather than templated — they're compose-network-internal and never need to vary per deployment, only the host-side ports and credentials do.
 
 **Important Vite gotcha:** `weather-dashboard`'s `VITE_*` vars are baked into the static JS bundle at *build time* (`import.meta.env.VITE_*` references are statically replaced during the Vite build), not read at container runtime — they're passed as Docker build `args` in `compose.yaml`, not `environment:`. They also must be a hostname/port the **browser** can reach (LAN hostname, e.g. `home-hub`), not the compose service name `weather-hub`, since the browser is never inside the compose network. Whenever `WEATHER_DASHBOARD_API_SERVER` or `WEATHER_HUB_PORT` change, `weather-dashboard` must be rebuilt (`docker compose up -d --build weather-dashboard`) — restarting alone won't pick up the change.
 

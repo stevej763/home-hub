@@ -1,34 +1,10 @@
 services:
 
-  db:
-    container_name: weather-hub-db
-    image: postgres:17-alpine
-    restart: always
-    ports:
-      - "${POSTGRES_PORT:-5434}:5432"
-
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-weatherhub}
-
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-weatherhub}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-    volumes:
-      - db-data:/var/lib/postgresql/data
-
   migrate:
     container_name: weather-hub-migrate
     build:
       context: ./weather-hub
     restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       # Standard libpq env vars - node-pg-migrate's CLI picks these up natively
       # when DATABASE_URL isn't set, so no extra config is needed here.
@@ -74,6 +50,3 @@ services:
         condition: service_started
     ports:
       - "${WEATHER_DASHBOARD_PORT:-8200}:80"
-
-volumes:
-  db-data:

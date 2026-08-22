@@ -1,0 +1,40 @@
+# Auto-loaded by `docker compose` whenever this file sits next to compose.yaml
+# (no -f flag needed) - adds the local Postgres container that a prod deploy
+# against an external database doesn't need, and points `migrate` at it. See
+# the "Full stack via Docker" section in CLAUDE.md.
+#
+# To run without this file (e.g. prod, pointed at an external Postgres):
+#   docker compose -f compose.yaml up -d --build
+
+services:
+
+  db:
+    container_name: weather-hub-db
+    image: postgres:17-alpine
+    restart: always
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-weatherhub}
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-weatherhub}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  # migrate and weather-hub are fully defined in compose.yaml already; this
+  # just adds the local-only wait-for-db dependency on top.
+  migrate:
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
