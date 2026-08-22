@@ -33,7 +33,7 @@ services:
       # Standard libpq env vars - node-pg-migrate's CLI picks these up natively
       # when DATABASE_URL isn't set, so no extra config is needed here.
       PGHOST: ${DB_HOST:-db}
-      PGPORT: 5432
+      PGPORT: ${POSTGRES_PORT:-5432}
       PGUSER: ${POSTGRES_USER:-postgres}
       PGPASSWORD: ${POSTGRES_PASSWORD:-password}
       PGDATABASE: ${POSTGRES_DB:-weatherhub}
@@ -52,7 +52,7 @@ services:
     environment:
       PORT: 3000
       DATABASE_HOST: ${DB_HOST:-db}
-      DATABASE_PORT: 5432
+      DATABASE_PORT: ${POSTGRES_PORT:-5432}
       DATABASE_USER: ${POSTGRES_USER:-postgres}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DATABASE_NAME: ${POSTGRES_DB:-weatherhub}
