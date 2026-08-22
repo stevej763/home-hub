@@ -56,7 +56,7 @@ docker compose up -d --build
 - `db` — Postgres, data persisted in a named volume.
 - a `depends_on: db: condition: service_healthy` override on `migrate`, so it waits for the local `db` to be ready before running.
 
-**Prod / external database:** run `docker compose -f compose.yaml up -d --build` (explicitly excluding the override file, or just don't ship it to the prod host). `db` is never created — `migrate` and `weather-hub` both connect directly to `DATABASE_HOST`/`PGHOST` from `.env`, which must point at the external Postgres instance (already created ahead of time — `migrate` only manages schema, not instance creation).
+**Prod / external database:** set `COMPOSE_FILE=compose.yaml` in `.env` (commented out in `.env.example` — uncomment it) so plain `docker compose` commands stop auto-merging `compose.override.yaml`, no `-f` flag needed on every invocation. Then point `DB_HOST` at the external Postgres instance (already created ahead of time — `migrate` only manages schema, not instance creation). `db` is never created — `migrate` and `weather-hub` both connect directly to it via `DATABASE_HOST`/`PGHOST`. (Equivalent one-off alternative: `docker compose -f compose.yaml up -d --build`.)
 
 Host ports and Postgres credentials come from `.env` at the repo root (see `.env.example`) rather than being hardcoded in the compose files. Container-internal ports/hostnames (`PORT: 3000`, `DATABASE_HOST: db`, the container side of every `ports:` mapping) are hardcoded directly in `compose.yaml`/`compose.override.yaml` rather than templated — they're compose-network-internal and never need to vary per deployment, only the host-side ports and credentials do.
 
