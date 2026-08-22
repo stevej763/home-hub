@@ -20,9 +20,11 @@ node app.js          # starts the API on $PORT (default 3001); no dev/watch scri
 ```
 No test suite or linter is configured (`npm test` is a placeholder). Requires a `.env` with `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME` (and optionally `PORT`) — copy `weather-hub/.env.example` to `weather-hub/.env` and fill in real values; `.env` itself is gitignored.
 
-Database schema is a hand-ordered SQL migration set in `weather-hub/sql/`, numbered `000_*.sql` upward — apply them in order. There is no migration framework; new schema changes should be added as the next numbered `.sql` file. Two ways to apply them:
-- **Local/dev**, via `docker compose` — see below, migrations 001-007 run automatically on first boot of the `db` container (mounted into `/docker-entrypoint-initdb.d/`).
-- **A remote/existing Postgres** (e.g. a deploy host) — `weather-hub/sql/initdb.sh` applies them via `psql`. It's parameterized via env vars: `DB_HOST` and `DB_PASSWORD` are required, `DB_USER` (default `postgres`), `DB_NAME` (default `weatherhub`), `DB_PORT` (default `5432`) are optional. E.g. `DB_HOST=192.168.1.x DB_PASSWORD=... sh weather-hub/sql/initdb.sh`.
+Database schema is managed by [node-pg-migrate](https://github.com/salsita/node-pg-migrate), with plain-SQL migrations in `weather-hub/migrations/` (numbered `001_*.sql` upward, each just a `-- Up Migration` block — forward-only, no `-- Down Migration` sections exist yet). It connects using the standard libpq env vars (`PGHOST`/`PGPORT`/`PGUSER`/`PGPASSWORD`/`PGDATABASE`), or `DATABASE_URL` if set. Two ways to run it, both via `npm run migrate` from `weather-hub/`:
+- **Local/dev, via `docker compose`** — see below, a one-shot `migrate` service runs it automatically against `db` before `weather-hub` starts.
+- **A remote/existing Postgres** (e.g. a deploy host) — set `PGHOST`/`PGPASSWORD` (and optionally `PGUSER`, `PGDATABASE`, `PGPORT`) as env vars, then run `npm run migrate` directly. E.g. `PGHOST=192.168.1.x PGPASSWORD=... npm run migrate` (from `weather-hub/`). The target database itself must already exist first.
+
+New schema changes are added as the next migration via `npm run migrate:create -- <name>` (from `weather-hub/`), which creates a numbered `weather-hub/migrations/<n>_<name>.sql` from a template.
 
 `weather-hub` also has a `Dockerfile` — see the "Full stack via Docker" section below, which is the primary way to run it containerized.
 
@@ -45,9 +47,10 @@ Hub address is configurable via `SENSOR_SERVER_IP`/`SENSOR_SERVER_PORT` (default
 cp .env.example .env   # first time only; edit values as needed
 docker compose up -d --build
 ```
-Brings up three services together:
-- `db` — Postgres, schema auto-applied from `weather-hub/sql/001`-`007` on first boot, data persisted in a named volume.
-- `weather-hub` — built from `weather-hub/Dockerfile`, talks to `db` over the compose network.
+Brings up four services together:
+- `db` — Postgres, data persisted in a named volume.
+- `migrate` — runs `npm run migrate` (node-pg-migrate, see above) against `db` once and exits; built from `weather-hub/Dockerfile` like `weather-hub` itself, just with the container command overridden.
+- `weather-hub` — built from `weather-hub/Dockerfile`, waits for `migrate` to exit successfully (`condition: service_completed_successfully`) before starting, then talks to `db` over the compose network.
 - `weather-dashboard` — built from `weather-dashboard/Dockerfile` (Vite build → nginx).
 
 Host ports and Postgres credentials come from `.env` at the repo root (see `.env.example`) rather than being hardcoded in the compose file. Container-internal ports/hostnames (`PORT: 3000`, `DATABASE_HOST: db`, `DATABASE_PORT: 5432`, the container side of every `ports:` mapping) are hardcoded directly in `compose.yaml` rather than templated — they're compose-network-internal and never need to vary per deployment, only the host-side ports and credentials do.
@@ -60,7 +63,7 @@ Host ports and Postgres credentials come from `.env` at the repo root (see `.env
 
 **Device lifecycle (`weather-hub`):** Devices move through a status state machine stored in `device.status`: `REGISTERED → CALIBRATING → READY → ACTIVE → OFFLINE/DISABLED/RETIRED`, defined in `weather-hub/routes/deviceRoutes.js`. The sensor script drives this itself: on boot it POSTs to `/devices/register`, calls `/devices/status/calibrating/:uid`, takes 5 calibration readings, then POSTs `/devices/status/ready/:uid`. A cron job in `weather-hub/cronService.js` runs every minute and (`deviceStatusService.js`) promotes `READY` devices to `ACTIVE`, and demotes `ACTIVE` devices to `OFFLINE` if `last_active_at` is more than a minute old. Only devices with status `ACTIVE` are accepted by `/measurement/record` — everything else is silently rejected with `{"error": "Device is not active"}`.
 
-**Readings model:** temperature/humidity/pressure are three separate tables (`weather-hub/sql/002-004`), each FK'd to `device` by `device_uid` (a UUID the Pi derives deterministically from its own CPU serial via `sensor/main.py`'s `generateDeviceUid`, so the same physical device always reregisters with the same UID). `readingsRoutes.js` exposes both raw and interval-bucketed (`/interval`) endpoints per measurement type — the bucket width (minute/hour/day/month) is chosen automatically in `caluculateGraphUnits` based on the requested `from`/`to` span, and the interval queries generate a `date_trunc`'d series so gaps show up as zero/`NULL` rather than being skipped.
+**Readings model:** temperature/humidity/pressure are three separate tables (`weather-hub/migrations/002-004`), each FK'd to `device` by `device_uid` (a UUID the Pi derives deterministically from its own CPU serial via `sensor/main.py`'s `generateDeviceUid`, so the same physical device always reregisters with the same UID). `readingsRoutes.js` exposes both raw and interval-bucketed (`/interval`) endpoints per measurement type — the bucket width (minute/hour/day/month) is chosen automatically in `caluculateGraphUnits` based on the requested `from`/`to` span, and the interval queries generate a `date_trunc`'d series so gaps show up as zero/`NULL` rather than being skipped.
 
 **Frontend routing (`weather-dashboard/src/App.tsx`):** `/` summary, `/all-device-data`, `/device/:deviceUid` detail, `/locations` (location CRUD, used to group devices). API calls live in `src/api/*.ts`, all built from the `VITE_API_SERVER`/`VITE_API_PORT` env vars via `src/config.ts` — there's no shared HTTP client, each file constructs its own `fetch` calls against `weather-hub`.
 

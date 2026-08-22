@@ -4,7 +4,6 @@ services:
     container_name: weather-hub-db
     image: postgres:17-alpine
     restart: always
-    shm_size: 128mb
     ports:
       - "${POSTGRES_PORT:-5434}:5432"
 
@@ -21,15 +20,24 @@ services:
 
     volumes:
       - db-data:/var/lib/postgresql/data
-      # POSTGRES_DB already creates the "weatherhub" database, so 000_createdb.sql
-      # is intentionally not mounted here - only the schema migrations run.
-      - ./weather-hub/sql/001_device.sql:/docker-entrypoint-initdb.d/001_device.sql:ro
-      - ./weather-hub/sql/002_temperature.sql:/docker-entrypoint-initdb.d/002_temperature.sql:ro
-      - ./weather-hub/sql/003_humidity.sql:/docker-entrypoint-initdb.d/003_humidity.sql:ro
-      - ./weather-hub/sql/004_pressure.sql:/docker-entrypoint-initdb.d/004_pressure.sql:ro
-      - ./weather-hub/sql/005_add_device_last_active_at_column.sql:/docker-entrypoint-initdb.d/005_add_device_last_active_at_column.sql:ro
-      - ./weather-hub/sql/006_location.sql:/docker-entrypoint-initdb.d/006_location.sql:ro
-      - ./weather-hub/sql/007_add_deveice_location_fk.sql:/docker-entrypoint-initdb.d/007_add_deveice_location_fk.sql:ro
+
+  migrate:
+    container_name: weather-hub-migrate
+    build:
+      context: ./weather-hub
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Standard libpq env vars - node-pg-migrate's CLI picks these up natively
+      # when DATABASE_URL isn't set, so no extra config is needed here.
+      PGHOST: ${DB_HOST:-db}
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-password}
+      PGDATABASE: ${POSTGRES_DB:-weatherhub}
+    command: ["npm", "run", "migrate"]
 
   weather-hub:
     container_name: weather-hub-api
@@ -37,8 +45,8 @@ services:
       context: ./weather-hub
     restart: always
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     ports:
       - "${WEATHER_HUB_PORT:-8100}:3000"
     environment:
@@ -57,11 +65,7 @@ services:
     build:
       context: ./weather-dashboard
       args:
-        # Vite bakes these into the static bundle at build time - they must be
-        # reachable from the *browser*, not just from inside the compose network,
-        # so these default to the LAN hostname/port convention used elsewhere in
-        # this repo (see sensor/main.py's serverIp) rather than the "weather-hub"
-        # compose service name. Rebuild this service (--build) after changing them.
+        # Rebuild this service (--build) after changing these vars.
         VITE_API_SERVER: ${WEATHER_DASHBOARD_API_SERVER:-localhost}
         VITE_API_PORT: ${WEATHER_HUB_PORT:-8100}
     restart: always

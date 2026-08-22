@@ -1,3 +1,5 @@
+-- Up Migration
+
 CREATE TABLE temperature (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
 	temperature_uid UUID NOT NULL,

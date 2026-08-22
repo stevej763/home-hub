@@ -1,3 +1,5 @@
+-- Up Migration
+
 CREATE TABLE device (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
 	device_uid UUID NOT NULL,

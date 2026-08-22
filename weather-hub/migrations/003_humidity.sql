@@ -1,3 +1,5 @@
+-- Up Migration
+
 CREATE TABLE humidity (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
 	humidity_uid UUID NOT NULL,

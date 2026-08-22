@@ -1,3 +1,5 @@
+-- Up Migration
+
 CREATE TABLE location (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
     location_uid UUID NOT NULL,

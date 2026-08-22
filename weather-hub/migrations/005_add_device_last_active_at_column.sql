@@ -1,3 +1,5 @@
+-- Up Migration
+
 ALTER TABLE device ADD COLUMN last_active_at TIMESTAMP WITHOUT TIME ZONE;
 
 COMMENT ON COLUMN public.device.last_active_at IS 

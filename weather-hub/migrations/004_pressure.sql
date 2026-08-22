@@ -1,3 +1,5 @@
+-- Up Migration
+
 CREATE TABLE pressure (
 	id BIGINT GENERATED ALWAYS AS IDENTITY,
 	pressure_uid UUID NOT NULL,
