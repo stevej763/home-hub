@@ -9,7 +9,7 @@ This is a personal home automation monorepo run on a home network with Raspberry
 - **`weather-hub/`** — Node/Express API + Postgres, the central hub all other services talk to.
 - **`weather-dashboard/`** — React (Vite + TypeScript) frontend for viewing weather data.
 - **`sensor/`** — Python script that runs on a Raspberry Pi with a BME280 sensor, polling temperature/humidity/pressure and posting readings to `weather-hub`.
-- **`docker-compose.yml`** (repo root) — runs Postgres, `weather-hub`, and `weather-dashboard` together.
+- **`compose.yaml`** (repo root) — runs Postgres, `weather-hub`, and `weather-dashboard` together.
 
 ## Commands
 
@@ -50,9 +50,9 @@ Brings up three services together:
 - `weather-hub` — built from `weather-hub/Dockerfile`, talks to `db` over the compose network.
 - `weather-dashboard` — built from `weather-dashboard/Dockerfile` (Vite build → nginx).
 
-Host ports and Postgres credentials come from `.env` at the repo root (see `.env.example`) rather than being hardcoded in the compose file. Container-internal ports/hostnames (`PORT: 3000`, `DATABASE_HOST: db`, `DATABASE_PORT: 5432`, the container side of every `ports:` mapping) are hardcoded directly in `docker-compose.yml` rather than templated — they're compose-network-internal and never need to vary per deployment, only the host-side ports and credentials do.
+Host ports and Postgres credentials come from `.env` at the repo root (see `.env.example`) rather than being hardcoded in the compose file. Container-internal ports/hostnames (`PORT: 3000`, `DATABASE_HOST: db`, `DATABASE_PORT: 5432`, the container side of every `ports:` mapping) are hardcoded directly in `compose.yaml` rather than templated — they're compose-network-internal and never need to vary per deployment, only the host-side ports and credentials do.
 
-**Important Vite gotcha:** `weather-dashboard`'s `VITE_*` vars are baked into the static JS bundle at *build time* (`import.meta.env.VITE_*` references are statically replaced during the Vite build), not read at container runtime — they're passed as Docker build `args` in `docker-compose.yml`, not `environment:`. They also must be a hostname/port the **browser** can reach (LAN hostname, e.g. `home-hub`), not the compose service name `weather-hub`, since the browser is never inside the compose network. Whenever `WEATHER_DASHBOARD_API_SERVER` or `WEATHER_HUB_PORT` change, `weather-dashboard` must be rebuilt (`docker compose up -d --build weather-dashboard`) — restarting alone won't pick up the change.
+**Important Vite gotcha:** `weather-dashboard`'s `VITE_*` vars are baked into the static JS bundle at *build time* (`import.meta.env.VITE_*` references are statically replaced during the Vite build), not read at container runtime — they're passed as Docker build `args` in `compose.yaml`, not `environment:`. They also must be a hostname/port the **browser** can reach (LAN hostname, e.g. `home-hub`), not the compose service name `weather-hub`, since the browser is never inside the compose network. Whenever `WEATHER_DASHBOARD_API_SERVER` or `WEATHER_HUB_PORT` change, `weather-dashboard` must be rebuilt (`docker compose up -d --build weather-dashboard`) — restarting alone won't pick up the change.
 
 ## Architecture
 
