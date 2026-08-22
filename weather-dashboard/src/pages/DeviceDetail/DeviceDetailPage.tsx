@@ -73,7 +73,7 @@ const DeviceDetailPage = () => {
                             temperature={latestReadings.temperature}
                             humidity={latestReadings.humidity}
                             pressure={latestReadings.pressure}
-                            size={176}
+                            size={132}
                             active={isActive}
                         />
                     </div>

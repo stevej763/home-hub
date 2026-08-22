@@ -85,7 +85,7 @@ const DeviceOverview = ({ device, updateDevices }: DeviceOverviewProps) => {
                         temperature={latestReadings.temperature}
                         humidity={latestReadings.humidity}
                         pressure={latestReadings.pressure}
-                        size={104}
+                        size={90}
                         active={isActive}
                     />
                 </div>
