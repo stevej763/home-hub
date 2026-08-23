@@ -3,10 +3,11 @@ const router = express.Router();
 const db = require('../db');
 const uuid = require('uuid');
 const asyncHandler = require('../utils/asyncHandler');
+const validateUuid = require('../middleware/validateUuid');
 const { addLatestDeviceActivity } = require('../deviceStatusService');
 
 
-router.post('/record', asyncHandler(async (req, res) => {
+router.post('/record', validateUuid('device_uid', { location: 'body' }), asyncHandler(async (req, res) => {
     const { device_uid, temperature, humidity, pressure } = req.body;
     const timestamp = new Date();
 

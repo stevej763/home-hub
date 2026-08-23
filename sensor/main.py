@@ -1,4 +1,5 @@
 from datetime import timedelta
+from logging.handlers import RotatingFileHandler
 
 import requests
 import random
@@ -34,7 +35,7 @@ logger = logging.getLogger()
 
 logPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 fileName = "sensor_logs"
-fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+fileHandler = RotatingFileHandler("{0}/{1}.log".format(logPath, fileName), maxBytes=5 * 1024 * 1024, backupCount=3)
 fileHandler.setFormatter(logFormatter)
 consoleHandler = logging.StreamHandler()
 consoleHandler.setFormatter(logFormatter)
@@ -62,12 +63,17 @@ def calibrate():
         logger.warning("Skipping calibration")
         publishReadyStatus()
         return
-    for i in range(5):
-        logger.info(f"Calibration iteration: {i + 1}")
-        temperature = bme280.get_temperature()
-        pressure = bme280.get_pressure()
-        humidity = bme280.get_humidity()
-        logger.info(f"{temperature:05.2f}°C {pressure:05.2f}hPa {humidity:05.2f}%")
+    completed = 0
+    while completed < 5:
+        try:
+            logger.info(f"Calibration iteration: {completed + 1}")
+            temperature = bme280.get_temperature()
+            pressure = bme280.get_pressure()
+            humidity = bme280.get_humidity()
+            logger.info(f"{temperature:05.2f}°C {pressure:05.2f}hPa {humidity:05.2f}%")
+            completed += 1
+        except Exception as e:
+            logger.warning("Calibration read failed, retrying error=%s", e)
         time.sleep(5)
     logger.info("Calibration complete")
     publishReadyStatus()
@@ -110,12 +116,12 @@ def sendData():
         "pressure": pressure,
         "humidity": humidity
     }
-    logger.info("Sending data temperature=%s pressure=%s humidity=%s", temperature, pressure, humidity)
+    logger.debug("Sending data temperature=%s pressure=%s humidity=%s", temperature, pressure, humidity)
     response = session.post(url=buildUrl("/measurement/record"), json=data, timeout=REQUEST_TIMEOUT_SECONDS)
     if not response.ok:
         logger.warning("Hub rejected measurement statusCode=%s body=%s", response.status_code, response.text)
     else:
-        logger.info("Response: %s", response.json())
+        logger.debug("Response: %s", response.json())
 
 def getIpAddress():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -168,7 +174,7 @@ def beginDataStreaming():
             if (status == "ACTIVE"):
                 sendData()
             else:
-                logger.info("Current status: %s. Not sending data", status)
+                logger.debug("Current status: %s. Not sending data", status)
         except Exception as e:
             logger.error("Failed to send data error=%s", e)
         time.sleep(5)
@@ -200,28 +206,54 @@ def getDeviceStatus():
     if not response.ok:
         raise Exception("Failed to get device status statusCode={0} body={1}".format(response.status_code, response.text))
     body = response.json()
-    logger.info("response %s", body)
+    logger.debug("response %s", body)
     return body['status']
 
 
+def postStatusWithRetry(path, logLabel):
+    connection_attempts = 1
+    while True:
+        try:
+            response = session.post(url=buildUrl(path), timeout=REQUEST_TIMEOUT_SECONDS)
+            if not response.ok:
+                raise Exception("Hub returned statusCode={0} body={1}".format(response.status_code, response.text))
+            logger.info("%s response: %s", logLabel, response.text)
+            return
+        except Exception as e:
+            sleep_time = min(connection_attempts * connection_attempts, MAX_RETRY_BACKOFF_SECONDS)
+            logger.warning("Failed to %s attemptNumber=%s error=%s", logLabel, connection_attempts, e)
+            connection_attempts += 1
+            time.sleep(sleep_time)
+
 def publishCalibration():
     logger.info("Publishing calibration")
-    response = session.post(url=buildUrl("/devices/status/calibrating/{0}".format(deviceUid)), timeout=REQUEST_TIMEOUT_SECONDS)
-    logger.info("Publish calibration response: %s", response.text)
+    postStatusWithRetry("/devices/status/calibrating/{0}".format(deviceUid), "Publish calibration")
 
 def publishReadyStatus():
     logger.info("Publishing ready status")
-    response = session.post(url=buildUrl("/devices/status/ready/{0}".format(deviceUid)), timeout=REQUEST_TIMEOUT_SECONDS)
-    logger.info("Publish ready status response: %s", response.text)
+    postStatusWithRetry("/devices/status/ready/{0}".format(deviceUid), "Publish ready status")
 
 def initHardware():
     global bus, bme280
-    bus = SMBus(1)
-    bme280 = BME280(i2c_dev=bus)
+    connection_attempts = 1
+    while bme280 is None:
+        try:
+            bus = SMBus(1)
+            bme280 = BME280(i2c_dev=bus)
+        except Exception as e:
+            sleep_time = min(connection_attempts * connection_attempts, MAX_RETRY_BACKOFF_SECONDS)
+            logger.warning("Failed to initialise hardware attemptNumber=%s error=%s", connection_attempts, e)
+            connection_attempts += 1
+            time.sleep(sleep_time)
 
 if __name__ == "__main__":
-    initHardware()
-    initialise()
-    registerWithHub()
-    calibrate()
-    beginDataStreaming()
+    while True:
+        try:
+            initHardware()
+            initialise()
+            registerWithHub()
+            calibrate()
+            beginDataStreaming()
+        except Exception as e:
+            logger.error("Unhandled error in main loop, restarting error=%s", e)
+            time.sleep(5)

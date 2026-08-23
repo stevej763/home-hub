@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const asyncHandler = require('../utils/asyncHandler');
+const validateUuid = require('../middleware/validateUuid');
 
 
 router.get('/temperature', asyncHandler(async (req, res) => {
@@ -58,7 +59,7 @@ router.get('/temperature/interval', asyncHandler(async (req, res) => {
     res.json(results.rows);
 }));
 
-router.get('/temperature/interval/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/temperature/interval/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
@@ -92,7 +93,7 @@ router.get('/temperature/interval/:deviceUid', asyncHandler(async (req, res) => 
     res.json(results.rows);
 }));
 
-router.get('/pressure/interval/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/pressure/interval/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
@@ -126,7 +127,7 @@ router.get('/pressure/interval/:deviceUid', asyncHandler(async (req, res) => {
     res.json(results.rows);
 }));
 
-router.get('/humidity/interval/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/humidity/interval/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const [from, to] = [req.query.from, req.query.to]
     const deviceUid = req.params.deviceUid;
     const units = caluculateGraphUnits(from, to)
@@ -233,7 +234,7 @@ router.get('/latest', asyncHandler(async (req, res) => {
     res.json(results.rows);
 }));
 
-router.get('/latest/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/latest/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     const results = await db.query(`
     WITH latest_temperature AS (
@@ -277,25 +278,25 @@ router.get('/latest/:deviceUid', asyncHandler(async (req, res) => {
 
 
 
-router.get('/temperature/latest/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/temperature/latest/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, temperature_uid FROM temperature t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid]);
     res.json(results.rows[0]);
 }));
 
-router.get('/humidity/latest/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/humidity/latest/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, humidity_uid FROM humidity t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid]);
     res.json(results.rows);
 }));
 
-router.get('/pressure/latest/:deviceUid', asyncHandler(async (req, res) => {
+router.get('/pressure/latest/:deviceUid', validateUuid('deviceUid'), asyncHandler(async (req, res) => {
     const deviceUid = req.params.deviceUid;
     const results = await db.query('SELECT reading, device_name, t.device_uid, reading_time, pressure_uid FROM pressure t LEFT JOIN device d ON d.device_uid = t.device_uid WHERE t.device_uid = $1 ORDER BY t.reading_time DESC LIMIT 1', [deviceUid]);
     res.json(results.rows);
 }));
 
-router.get('/temperature/:device_uid', asyncHandler(async (req, res) => {
+router.get('/temperature/:device_uid', validateUuid('device_uid'), asyncHandler(async (req, res) => {
     const device_uid = req.params.device_uid;
     const results = await db.query('SELECT * FROM temperature WHERE device_uid = $1', [device_uid]);
     res.json(results.rows);
@@ -306,7 +307,7 @@ router.get('/humidity', asyncHandler(async (req, res) => {
     res.json(results.rows);
 }));
 
-router.get('/humidity/:device_uid', asyncHandler(async (req, res) => {
+router.get('/humidity/:device_uid', validateUuid('device_uid'), asyncHandler(async (req, res) => {
     const device_uid = req.params.device_uid;
     const results = await db.query('SELECT * FROM humidity WHERE device_uid = $1', [device_uid]);
     res.json(results.rows);
@@ -317,7 +318,7 @@ router.get('/pressure', asyncHandler(async (req, res) => {
     res.json(results.rows);
 }));
 
-router.get('/pressure/:device_uid', asyncHandler(async (req, res) => {
+router.get('/pressure/:device_uid', validateUuid('device_uid'), asyncHandler(async (req, res) => {
     const device_uid = req.params.device_uid;
     const results = await db.query('SELECT * FROM pressure WHERE device_uid = $1', [device_uid]);
     res.json(results.rows);
