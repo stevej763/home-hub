@@ -9,6 +9,7 @@ import uuid
 import json
 import logging
 import os
+import subprocess
 
 from smbus2 import SMBus
 from bme280 import BME280
@@ -19,6 +20,9 @@ bme280 = None
 deviceUid = ""
 ipAddress = ""
 hostname = ""
+softwareVersion = ""
+macAddress = ""
+sensorReadErrorCount = 0
 serverBaseUrl = os.environ.get("SENSOR_SERVER_URL", "http://home-hub:3001").rstrip("/")
 calibrationEnabled = True
 
@@ -104,16 +108,68 @@ def generateDeviceUid():
     rd.seed(get_serial())
     return uuid.UUID(int=rd.getrandbits(128), version=4)
 
+def getCpuTemperature():
+    try:
+        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
+            return round(int(f.read().strip()) / 1000.0, 2)
+    except Exception:
+        return None
+
+def getUptimeSeconds():
+    try:
+        with open('/proc/uptime', 'r') as f:
+            return int(float(f.read().split()[0]))
+    except Exception:
+        return None
+
+def getSoftwareVersion():
+    try:
+        scriptDir = os.path.dirname(os.path.abspath(__file__))
+        result = subprocess.run(['git', '-C', scriptDir, 'rev-parse', '--short', 'HEAD'],
+                                 capture_output=True, text=True, timeout=5, check=True)
+        return result.stdout.strip()
+    except Exception:
+        return "unknown"
+
+def getMacAddress():
+    try:
+        node = uuid.getnode()
+        return ':'.join('{:02x}'.format((node >> ele) & 0xff) for ele in range(40, -8, -8))
+    except Exception:
+        return None
+
+def getWifiSignalStrength():
+    try:
+        with open('/proc/net/wireless', 'r') as f:
+            lines = f.readlines()
+        for line in lines[2:]:
+            parts = line.split()
+            if len(parts) >= 4:
+                return int(float(parts[3]))
+    except Exception:
+        pass
+    return None
+
 def sendData():
+    global sensorReadErrorCount
     uidString = deviceUid
-    temperature = getFormattedCurrentTemperature()
-    pressure = getFormattedCurrentPressure()
-    humidity = getFormattedCurrentHumidity()
+    try:
+        temperature = getFormattedCurrentTemperature()
+        pressure = getFormattedCurrentPressure()
+        humidity = getFormattedCurrentHumidity()
+    except Exception as e:
+        sensorReadErrorCount += 1
+        logger.warning("Sensor read failed error=%s errorCount=%s", e, sensorReadErrorCount)
+        return
     data = {
         "device_uid": uidString,
         "temperature": temperature,
         "pressure": pressure,
-        "humidity": humidity
+        "humidity": humidity,
+        "cpu_temperature": getCpuTemperature(),
+        "uptime_seconds": getUptimeSeconds(),
+        "read_error_count": sensorReadErrorCount,
+        "wifi_signal_strength": getWifiSignalStrength()
     }
     logger.debug("Sending data temperature=%s pressure=%s humidity=%s", temperature, pressure, humidity)
     response = session.post(url=buildUrl("/measurement/record"), json=data, timeout=REQUEST_TIMEOUT_SECONDS)
@@ -121,6 +177,7 @@ def sendData():
         logger.warning("Hub rejected measurement statusCode=%s body=%s", response.status_code, response.text)
     else:
         logger.debug("Response: %s", response.json())
+        sensorReadErrorCount = 0
 
 def getIpAddress():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -144,7 +201,10 @@ def registerWithHub():
     registration_data = {
         'device_uid': deviceUid,
         'device_name': hostname,
-        'ip_address': ipAddress
+        'ip_address': ipAddress,
+        'software_version': softwareVersion,
+        'mac_address': macAddress,
+        'hostname': hostname
     }
     while not connected:
         logger.info("Sending registration data deviceUid=%s device_name=%s ipAddress=%s", deviceUid, hostname, ipAddress)
@@ -182,8 +242,12 @@ def initialise():
     global deviceUid
     global ipAddress
     global hostname
+    global softwareVersion
+    global macAddress
     deviceUid = str(generateDeviceUid())
     hostname = getHostname()
+    softwareVersion = getSoftwareVersion()
+    macAddress = getMacAddress()
 
     connection_attempts = 1
     while not ipAddress:

@@ -62,6 +62,9 @@ const DeviceDetailsModal = ({ show, handleClose, device }: DeviceDetailsModalPro
                             value={deviceName}
                             onChange={(e) => setDeviceName(e.target.value)}
                         />
+                        <p className="font-mono text-xs text-ink-soft/70 -mt-2">
+                            Hostname: {device.hostname || '—'}
+                        </p>
                         <FormControl fullWidth size="small">
                             <InputLabel id="device-location-label">Location</InputLabel>
                             <Select

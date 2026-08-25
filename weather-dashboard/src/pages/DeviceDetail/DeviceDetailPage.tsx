@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getDevice, getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../../Components/StationDial/StationDial';
 import BarCharts from '../../Components/Chart/BarCharts';
 import TimePicker from '../../Components/TimePicker/TimePicker';
+import { DeviceDetailsModal } from '../../Components/Modal/DeviceDetailsModal';
 import type { Device, LatestReadings } from '../../api/types';
 
 const DeviceDetailPage = () => {
@@ -11,18 +12,26 @@ const DeviceDetailPage = () => {
     const [device, setDevice] = useState<Partial<Device>>({});
     const [latestReadings, setLatestReadings] = useState<LatestReadings>({});
     const [timePeriod, setTimePeriod] = useState(23);
+    const [configOpen, setConfigOpen] = useState(false);
     const updateInterval = 10000;
+
+    const fetchDevice = useCallback(async () => {
+        if (!deviceUid) return;
+        const result = await getDevice(deviceUid);
+        setDevice(result);
+    }, [deviceUid]);
+
+    const handleConfigClose = () => {
+        fetchDevice();
+        setConfigOpen(false);
+    };
 
     useEffect(() => {
         if (!deviceUid) return;
-        const fetchDevice = async () => {
-            const result = await getDevice(deviceUid);
-            setDevice(result);
-        };
         fetchDevice();
         const intervalId = setInterval(fetchDevice, updateInterval);
         return () => clearInterval(intervalId);
-    }, [deviceUid]);
+    }, [deviceUid, fetchDevice]);
 
     useEffect(() => {
         if (!deviceUid) return;
@@ -51,9 +60,18 @@ const DeviceDetailPage = () => {
             <div className="bg-face rounded-md shadow-face p-6 sm:p-8 mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                     <div>
-                        <h1 className="font-display font-semibold uppercase tracking-wide text-ink text-3xl sm:text-4xl leading-tight">
-                            {device.device_name || 'Loading…'}
-                        </h1>
+                        <div className="flex items-start justify-between gap-4">
+                            <h1 className="font-display font-semibold uppercase tracking-wide text-ink text-3xl sm:text-4xl leading-tight">
+                                {device.device_name || 'Loading…'}
+                            </h1>
+                            <button
+                                type="button"
+                                onClick={() => setConfigOpen(true)}
+                                className="shrink-0 mt-2 font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 hover:text-ink transition-colors"
+                            >
+                                Configure
+                            </button>
+                        </div>
                         <p className="font-mono text-xs uppercase tracking-widest text-ink-soft/70 mt-1">
                             {device.location_name || 'Unassigned location'}
                         </p>
@@ -85,6 +103,8 @@ const DeviceDetailPage = () => {
                 <TimePicker timePeriod={timePeriod} updateTimePeriod={setTimePeriod} />
             </div>
             <BarCharts deviceUid={deviceUid} timePeriod={timePeriod} updateInterval={updateInterval} />
+
+            <DeviceDetailsModal show={configOpen} handleClose={handleConfigClose} device={device} />
         </div>
     );
 };

@@ -13,6 +13,7 @@ export interface Device {
   id: string;
   device_uid: string;
   device_name: string;
+  hostname: string | null;
   ip_address: string;
   status: DeviceStatus;
   location_uid: string | null;

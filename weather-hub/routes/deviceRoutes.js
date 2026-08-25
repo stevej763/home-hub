@@ -54,18 +54,22 @@ router.post('/status/ready/:deviceUid', validateUuid('deviceUid'), asyncHandler(
 
 router.post('/register', validateUuid('device_uid', { location: 'body' }), asyncHandler(async (req, res) => {
     const { device_uid, device_name, ip_address } = req.body;
+    const software_version = req.body.software_version ?? null;
+    const mac_address = req.body.mac_address ?? null;
+    const hostname = req.body.hostname ?? null;
 
     const existing = await db.query('SELECT * FROM device WHERE device_uid = $1', [device_uid]);
     if (existing.rows.length > 0) {
-        await db.query('UPDATE device SET status = $1 WHERE device_uid = $2', ["REGISTERED", device_uid]);
+        await db.query('UPDATE device SET status = $1, software_version = $2, mac_address = $3, hostname = $4 WHERE device_uid = $5',
+            ["REGISTERED", software_version, mac_address, hostname, device_uid]);
         logger.info('Device re-registered', { deviceUid: device_uid, status: 'REGISTERED' });
         res.json({"result": "success", "device_id": device_uid, "message": "Device already exists. Device status set to REGISTERED"});
         return;
     }
 
     const timestamp = new Date();
-    await db.query('INSERT INTO device (device_uid, device_name, ip_address, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)',
-        [device_uid, device_name, ip_address, "REGISTERED", timestamp, timestamp]);
+    await db.query('INSERT INTO device (device_uid, device_name, ip_address, status, created_at, updated_at, software_version, mac_address, hostname) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        [device_uid, device_name, ip_address, "REGISTERED", timestamp, timestamp, software_version, mac_address, hostname]);
     logger.info('Device registered', { deviceUid: device_uid, deviceName: device_name, ipAddress: ip_address });
     res.json({"result": "success", "device_uid": device_uid});
 }));

@@ -4,11 +4,11 @@ const db = require('../db');
 const uuid = require('uuid');
 const asyncHandler = require('../utils/asyncHandler');
 const validateUuid = require('../middleware/validateUuid');
-const { addLatestDeviceActivity } = require('../deviceStatusService');
+const { recordDeviceHeartbeat } = require('../deviceStatusService');
 
 
 router.post('/record', validateUuid('device_uid', { location: 'body' }), asyncHandler(async (req, res) => {
-    const { device_uid, temperature, humidity, pressure } = req.body;
+    const { device_uid, temperature, humidity, pressure, cpu_temperature, uptime_seconds, read_error_count, wifi_signal_strength } = req.body;
     const timestamp = new Date();
 
     const device = await db.query('SELECT status FROM device WHERE device_uid = $1', [device_uid]);
@@ -17,7 +17,7 @@ router.post('/record', validateUuid('device_uid', { location: 'body' }), asyncHa
         return;
     }
 
-    await addLatestDeviceActivity(device_uid);
+    await recordDeviceHeartbeat(device_uid, { cpu_temperature, uptime_seconds, read_error_count, wifi_signal_strength });
 
     const inserts = [];
     if (temperature != null) {
