@@ -33,7 +33,7 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DATABASE_NAME: ${POSTGRES_DB:-weatherhub}
       # Must match the URL the dashboard is actually loaded from in the browser
-      # (see WEATHER_DASHBOARD_API_SERVER / WEATHER_DASHBOARD_PORT below).
+      # (see WEATHER_DASHBOARD_PORT below).
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8200}
 
   weather-dashboard:
@@ -41,14 +41,8 @@ services:
     build:
       context: ./weather-dashboard
       args:
-        # Rebuild this service (--build) after changing these vars.
-        VITE_API_SCHEME: ${WEATHER_DASHBOARD_API_SCHEME:-http}
-        VITE_API_SERVER: ${WEATHER_DASHBOARD_API_SERVER:-localhost}
-        # VITE_API_PORT is always sourced from WEATHER_HUB_PORT, which also sets
-        # the published port mapping below - it can't be left blank here even
-        # for https, unlike the sensor's SENSOR_SERVER_PORT. Set WEATHER_HUB_PORT
-        # to the real public port (e.g. 443) if going through a TLS reverse proxy.
-        VITE_API_PORT: ${WEATHER_HUB_PORT:-8100}
+        # Rebuild this service (--build) after changing this var.
+        VITE_API_URL: ${WEATHER_DASHBOARD_API_URL:-http://localhost:8100}
     restart: always
     depends_on:
       weather-hub:

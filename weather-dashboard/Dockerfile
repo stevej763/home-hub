@@ -14,12 +14,8 @@ COPY . .
 # Vite bakes VITE_* vars into the static bundle at build time (import.meta.env
 # references are statically replaced during the build), so they must be
 # passed as build args (not runtime container env vars).
-ARG VITE_API_SCHEME
-ARG VITE_API_SERVER
-ARG VITE_API_PORT
-ENV VITE_API_SCHEME=${VITE_API_SCHEME}
-ENV VITE_API_SERVER=${VITE_API_SERVER}
-ENV VITE_API_PORT=${VITE_API_PORT}
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
 
 RUN npm run build
 
