@@ -19,8 +19,9 @@ bme280 = None
 deviceUid = ""
 ipAddress = ""
 hostname = ""
+serverScheme = os.environ.get("SENSOR_SERVER_SCHEME", "http")
 serverIp = os.environ.get("SENSOR_SERVER_IP", "home-hub")
-serverPort = int(os.environ.get("SENSOR_SERVER_PORT", 3001))
+serverPort = os.environ.get("SENSOR_SERVER_PORT", "3001").strip()
 calibrationEnabled = True
 
 REQUEST_TIMEOUT_SECONDS = 10
@@ -28,7 +29,9 @@ REQUEST_TIMEOUT_SECONDS = 10
 session = requests.Session()
 
 def buildUrl(path):
-    return "http://{0}:{1}{2}".format(serverIp, serverPort, path)
+    if serverPort:
+        return "{0}://{1}:{2}{3}".format(serverScheme, serverIp, serverPort, path)
+    return "{0}://{1}{2}".format(serverScheme, serverIp, path)
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 logger = logging.getLogger()

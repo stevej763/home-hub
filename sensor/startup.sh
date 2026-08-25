@@ -1,7 +1,7 @@
 #!/bin/sh
 # startup.sh
 
-cd /home/steve/home-hub/sensor
+cd /home/steve/weatherhub/sensor
 
 if [ -f .env ]; then
   set -a
