@@ -47,6 +47,22 @@ const DeviceDetailPage = () => {
     const isActive = device.status === 'ACTIVE';
     const lastActive = device.last_active_at ? new Date(device.last_active_at).toLocaleString() : '—';
 
+    const formatUptime = (seconds: string | null | undefined): string => {
+        if (seconds == null) return '—';
+        const total = Number(seconds);
+        if (!Number.isFinite(total)) return '—';
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor((total % 86400) / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const parts: string[] = [];
+        if (days) parts.push(`${days}d`);
+        if (days || hours) parts.push(`${hours}h`);
+        parts.push(`${minutes}m`);
+        return parts.join(' ');
+    };
+
+    const readErrorCount = device.read_error_count ?? 0;
+
     return (
         <div>
             <nav className="font-mono text-xs uppercase tracking-widest text-face/50 mb-6">
@@ -96,6 +112,40 @@ const DeviceDetailPage = () => {
                         />
                     </div>
                 </div>
+            </div>
+
+            <h2 className="font-display uppercase tracking-wide text-face/80 text-lg mb-4">Diagnostics</h2>
+            <div className="bg-face rounded-md shadow-face p-6 sm:p-8 mb-8">
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-4 font-mono text-xs text-ink-soft">
+                    <div>
+                        <dt className="uppercase tracking-widest">Hostname</dt>
+                        <dd className="text-ink mt-1">{device.hostname || '—'}</dd>
+                    </div>
+                    <div>
+                        <dt className="uppercase tracking-widest">Software version</dt>
+                        <dd className="text-ink mt-1">{device.software_version || '—'}</dd>
+                    </div>
+                    <div>
+                        <dt className="uppercase tracking-widest">MAC address</dt>
+                        <dd className="text-ink mt-1">{device.mac_address || '—'}</dd>
+                    </div>
+                    <div>
+                        <dt className="uppercase tracking-widest">CPU temperature</dt>
+                        <dd className="text-ink mt-1">{device.cpu_temperature != null ? `${device.cpu_temperature}°C` : '—'}</dd>
+                    </div>
+                    <div>
+                        <dt className="uppercase tracking-widest">Uptime</dt>
+                        <dd className="text-ink mt-1">{formatUptime(device.uptime_seconds)}</dd>
+                    </div>
+                    <div>
+                        <dt className="uppercase tracking-widest">WiFi signal</dt>
+                        <dd className="text-ink mt-1">{device.wifi_signal_strength != null ? `${device.wifi_signal_strength} dBm` : '—'}</dd>
+                    </div>
+                    <div>
+                        <dt className="uppercase tracking-widest">Read errors</dt>
+                        <dd className={`mt-1 ${readErrorCount > 0 ? 'text-rust' : 'text-ink'}`}>{readErrorCount}</dd>
+                    </div>
+                </dl>
             </div>
 
             <div className="flex items-center justify-between mb-4">

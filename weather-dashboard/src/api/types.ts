@@ -21,6 +21,12 @@ export interface Device {
   last_active_at: string | null;
   created_at: string;
   updated_at: string;
+  software_version: string | null;
+  mac_address: string | null;
+  cpu_temperature: string | null;
+  uptime_seconds: string | null;
+  read_error_count: number | null;
+  wifi_signal_strength: number | null;
 }
 
 export interface Location {
