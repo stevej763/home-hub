@@ -15,6 +15,15 @@ If i2c was just enabled for the first time, reboot afterwards (`sudo reboot`) so
 can read the sensor on next boot. Check `sensor/logs/sensor_logs.log` and `sensor/logs/cronlog`
 after reboot to confirm the device registered with the hub successfully.
 
+## Updating
+Once a Pi is set up, pull and deploy the latest sensor code with:
+```
+sh weatherhub/sensor/update.sh
+```
+This does a `git pull`, reinstalls `requirements.txt` only if it changed, then reboots the Pi so
+the `@reboot` cron job restarts `main.py` on the new code. Run it per-Pi over SSH after pushing
+changes to `main`.
+
 ## Manual steps (what setup.sh does, for reference)
 ```
 sudo apt update
