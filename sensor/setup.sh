@@ -15,6 +15,8 @@ cd weatherhub/sensor
 mkdir -p logs
 chmod 755 startup.sh
 
+git rev-parse --short HEAD > version.txt
+
 if [ ! -f .env ]; then
   cp .env.example .env
   echo "Created .env from .env.example - edit SENSOR_SERVER_IP/SENSOR_SERVER_PORT if the hub isn't reachable at the defaults (home-hub/3001)"

@@ -9,6 +9,7 @@ echo "Current version: $BEFORE"
 echo "Pulling latest changes..."
 git pull
 AFTER=$(git rev-parse HEAD)
+git rev-parse --short HEAD > version.txt
 
 if [ "$BEFORE" = "$AFTER" ]; then
   echo "Already up to date."

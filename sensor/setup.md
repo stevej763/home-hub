@@ -33,6 +33,7 @@ sudo raspi-config nonint do_i2c 0
 git clone https://github.com/stevej763/weatherhub.git
 cd weatherhub/sensor
 cp .env.example .env   # edit SENSOR_SERVER_IP/SENSOR_SERVER_PORT if needed
+git rev-parse --short HEAD > version.txt
 sudo pip install -r requirements.txt --break-system-packages
 sh createCron.sh
 ```

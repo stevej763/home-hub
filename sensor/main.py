@@ -9,7 +9,6 @@ import uuid
 import json
 import logging
 import os
-import subprocess
 
 from smbus2 import SMBus
 from bme280 import BME280
@@ -125,9 +124,8 @@ def getUptimeSeconds():
 def getSoftwareVersion():
     try:
         scriptDir = os.path.dirname(os.path.abspath(__file__))
-        result = subprocess.run(['git', '-C', scriptDir, 'rev-parse', '--short', 'HEAD'],
-                                 capture_output=True, text=True, timeout=5, check=True)
-        return result.stdout.strip()
+        with open(os.path.join(scriptDir, 'version.txt'), 'r') as f:
+            return f.read().strip()
     except Exception:
         return "unknown"
 
