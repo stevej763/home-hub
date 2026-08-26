@@ -4,15 +4,23 @@ import { getDevice, getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../../Components/StationDial/StationDial';
 import BarCharts from '../../Components/Chart/BarCharts';
 import TimePicker from '../../Components/TimePicker/TimePicker';
-import { DeviceDetailsModal } from '../../Components/Modal/DeviceDetailsModal';
-import type { Device, LatestReadings } from '../../api/types';
+import type { Device, DeviceStatus, LatestReadings } from '../../api/types';
+
+const STATUS_META: Record<DeviceStatus, { label: string; dot: string; pulse: boolean }> = {
+    ACTIVE: { label: 'Live', dot: 'bg-teal', pulse: true },
+    READY: { label: 'Ready', dot: 'bg-brass', pulse: false },
+    CALIBRATING: { label: 'Calibrating', dot: 'bg-brass', pulse: true },
+    REGISTERED: { label: 'Registered', dot: 'bg-slate', pulse: false },
+    OFFLINE: { label: 'Offline', dot: 'bg-rust', pulse: false },
+    DISABLED: { label: 'Disabled', dot: 'bg-slate', pulse: false },
+    RETIRED: { label: 'Retired', dot: 'bg-slate', pulse: false },
+};
 
 const DeviceDetailPage = () => {
     const { deviceUid } = useParams<{ deviceUid: string }>();
     const [device, setDevice] = useState<Partial<Device>>({});
     const [latestReadings, setLatestReadings] = useState<LatestReadings>({});
     const [timePeriod, setTimePeriod] = useState(23);
-    const [configOpen, setConfigOpen] = useState(false);
     const updateInterval = 10000;
 
     const fetchDevice = useCallback(async () => {
@@ -20,11 +28,6 @@ const DeviceDetailPage = () => {
         const result = await getDevice(deviceUid);
         setDevice(result);
     }, [deviceUid]);
-
-    const handleConfigClose = () => {
-        fetchDevice();
-        setConfigOpen(false);
-    };
 
     useEffect(() => {
         if (!deviceUid) return;
@@ -45,23 +48,7 @@ const DeviceDetailPage = () => {
     }, [deviceUid]);
 
     const isActive = device.status === 'ACTIVE';
-    const lastActive = device.last_active_at ? new Date(device.last_active_at).toLocaleString() : '—';
-
-    const formatUptime = (seconds: string | null | undefined): string => {
-        if (seconds == null) return '—';
-        const total = Number(seconds);
-        if (!Number.isFinite(total)) return '—';
-        const days = Math.floor(total / 86400);
-        const hours = Math.floor((total % 86400) / 3600);
-        const minutes = Math.floor((total % 3600) / 60);
-        const parts: string[] = [];
-        if (days) parts.push(`${days}d`);
-        if (days || hours) parts.push(`${hours}h`);
-        parts.push(`${minutes}m`);
-        return parts.join(' ');
-    };
-
-    const readErrorCount = device.read_error_count ?? 0;
+    const status = device.status ? STATUS_META[device.status] : undefined;
 
     return (
         <div>
@@ -80,27 +67,26 @@ const DeviceDetailPage = () => {
                             <h1 className="font-display font-semibold uppercase tracking-wide text-ink text-3xl sm:text-4xl leading-tight">
                                 {device.device_name || 'Loading…'}
                             </h1>
-                            <button
-                                type="button"
-                                onClick={() => setConfigOpen(true)}
+                            <Link
+                                to={`/device/${deviceUid}/details`}
                                 className="shrink-0 mt-2 font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 hover:text-ink transition-colors"
                             >
-                                Configure
-                            </button>
+                                Station details &rarr;
+                            </Link>
                         </div>
                         <p className="font-mono text-xs uppercase tracking-widest text-ink-soft/70 mt-1">
                             {device.location_name || 'Unassigned location'}
                         </p>
-                        <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 font-mono text-xs text-ink-soft">
-                            <dt className="uppercase tracking-widest">Status</dt>
-                            <dd className="text-ink">{device.status || '—'}</dd>
-                            <dt className="uppercase tracking-widest">IP</dt>
-                            <dd className="text-ink">{device.ip_address || '—'}</dd>
-                            <dt className="uppercase tracking-widest">UID</dt>
-                            <dd className="text-ink truncate">{deviceUid}</dd>
-                            <dt className="uppercase tracking-widest">Last check-in</dt>
-                            <dd className="text-ink">{lastActive}</dd>
-                        </dl>
+                        {status && (
+                            <span className="flex items-center gap-1.5 mt-3">
+                                <span
+                                    className={`h-2 w-2 rounded-full ${status.dot} ${status.pulse ? 'animate-lamp' : ''}`}
+                                />
+                                <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+                                    {status.label}
+                                </span>
+                            </span>
+                        )}
                     </div>
                     <div className="self-center sm:self-start">
                         <StationDial
@@ -114,47 +100,11 @@ const DeviceDetailPage = () => {
                 </div>
             </div>
 
-            <h2 className="font-display uppercase tracking-wide text-face/80 text-lg mb-4">Diagnostics</h2>
-            <div className="bg-face rounded-md shadow-face p-6 sm:p-8 mb-8">
-                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-4 font-mono text-xs text-ink-soft">
-                    <div>
-                        <dt className="uppercase tracking-widest">Hostname</dt>
-                        <dd className="text-ink mt-1">{device.hostname || '—'}</dd>
-                    </div>
-                    <div>
-                        <dt className="uppercase tracking-widest">Software version</dt>
-                        <dd className="text-ink mt-1">{device.software_version || '—'}</dd>
-                    </div>
-                    <div>
-                        <dt className="uppercase tracking-widest">MAC address</dt>
-                        <dd className="text-ink mt-1">{device.mac_address || '—'}</dd>
-                    </div>
-                    <div>
-                        <dt className="uppercase tracking-widest">CPU temperature</dt>
-                        <dd className="text-ink mt-1">{device.cpu_temperature != null ? `${device.cpu_temperature}°C` : '—'}</dd>
-                    </div>
-                    <div>
-                        <dt className="uppercase tracking-widest">Uptime</dt>
-                        <dd className="text-ink mt-1">{formatUptime(device.uptime_seconds)}</dd>
-                    </div>
-                    <div>
-                        <dt className="uppercase tracking-widest">WiFi signal</dt>
-                        <dd className="text-ink mt-1">{device.wifi_signal_strength != null ? `${device.wifi_signal_strength} dBm` : '—'}</dd>
-                    </div>
-                    <div>
-                        <dt className="uppercase tracking-widest">Read errors</dt>
-                        <dd className={`mt-1 ${readErrorCount > 0 ? 'text-rust' : 'text-ink'}`}>{readErrorCount}</dd>
-                    </div>
-                </dl>
-            </div>
-
             <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display uppercase tracking-wide text-face/80 text-lg">History</h2>
                 <TimePicker timePeriod={timePeriod} updateTimePeriod={setTimePeriod} />
             </div>
             <BarCharts deviceUid={deviceUid} timePeriod={timePeriod} updateInterval={updateInterval} />
-
-            <DeviceDetailsModal show={configOpen} handleClose={handleConfigClose} device={device} />
         </div>
     );
 };

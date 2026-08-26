@@ -42,23 +42,23 @@ const DeviceOverview = ({ device }: DeviceOverviewProps) => {
     return (
         <Link
             to={`/device/${device.device_uid}`}
-            className="group relative block bg-face rounded-md shadow-face p-7 transition-transform duration-300 hover:-translate-y-1"
+            className="group relative block bg-face rounded-md shadow-face p-8 transition-transform duration-300 hover:-translate-y-1"
         >
-            <Rivet className="top-2.5 left-2.5" />
-            <Rivet className="top-2.5 right-2.5" />
-            <Rivet className="bottom-2.5 left-2.5" />
-            <Rivet className="bottom-2.5 right-2.5" />
+            <Rivet className="top-3 left-3" />
+            <Rivet className="top-3 right-3" />
+            <Rivet className="bottom-3 left-3" />
+            <Rivet className="bottom-3 right-3" />
 
             <div className="flex items-start justify-between gap-3 mb-1">
                 <div className="min-w-0">
-                    <h2 className="font-display font-semibold uppercase tracking-wide text-ink text-2xl leading-tight truncate">
+                    <h2 className="font-display font-semibold uppercase tracking-wide text-ink text-3xl leading-tight truncate">
                         {device.device_name}
                     </h2>
-                    <p className="font-mono text-xs uppercase tracking-widest text-ink-soft/70 mt-0.5">
+                    <p className="font-mono text-xs uppercase tracking-widest text-ink-soft/70 mt-1">
                         {device.location_name || 'Unassigned'}
                     </p>
                 </div>
-                <span className="flex items-center gap-1.5 shrink-0 pt-1">
+                <span className="flex items-center gap-1.5 shrink-0 pt-1.5">
                     <span
                         className={`h-2.5 w-2.5 rounded-full ${status.dot} ${status.pulse ? 'animate-lamp' : ''}`}
                     />
@@ -68,17 +68,17 @@ const DeviceOverview = ({ device }: DeviceOverviewProps) => {
                 </span>
             </div>
 
-            <div className="mt-6 flex justify-center">
+            <div className="mt-7 flex justify-center">
                 <StationDial
                     temperature={latestReadings.temperature}
                     humidity={latestReadings.humidity}
                     pressure={latestReadings.pressure}
-                    size={112}
+                    size={132}
                     active={isActive}
                 />
             </div>
 
-            <div className="mt-6 pt-4 border-t border-ink/10">
+            <div className="mt-7 pt-5 border-t border-ink/10">
                 <span className="font-mono text-xs uppercase tracking-widest text-brass-dark group-hover:text-brass transition-colors">
                     View station &rarr;
                 </span>

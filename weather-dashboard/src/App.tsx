@@ -7,6 +7,7 @@ import NotFoundPage from './pages/NotFound/NotFoundPage';
 import LocationConfigurationPage from './pages/LocationConfiguration/LocationConfigurationPage';
 import SummaryPage from './pages/Summary/SummaryPage';
 import DeviceDetail from './pages/DeviceDetail/DeviceDetailPage';
+import DeviceInfoPage from './pages/DeviceDetail/DeviceInfoPage';
 
 const NAV_LINKS = [
     { to: '/', label: 'Stations', end: true },
@@ -74,6 +75,7 @@ const App = () => {
                             <Route path="/" element={<SummaryPage />} />
                             <Route path="/all-device-data" element={<AllDeviceDataPage />} />
                             <Route path="/device/:deviceUid" element={<DeviceDetail />} />
+                            <Route path="/device/:deviceUid/details" element={<DeviceInfoPage />} />
                             <Route path="/locations" element={<LocationConfigurationPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>
