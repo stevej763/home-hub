@@ -34,10 +34,10 @@ const SummaryPage = () => {
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {devices.map((device, i) => (
                 <div key={device.id} style={{ animationDelay: `${i * 60}ms` }} className="animate-rise">
-                    <DeviceOverview device={device} updateDevices={fetchDevices} />
+                    <DeviceOverview device={device} />
                 </div>
             ))}
         </div>

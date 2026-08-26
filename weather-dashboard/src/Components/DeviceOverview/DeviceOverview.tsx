@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../StationDial/StationDial';
-import { DeviceDetailsModal } from '../Modal/DeviceDetailsModal';
 import type { Device, DeviceStatus, LatestReadings } from '../../api/types';
 
 const STATUS_META: Record<DeviceStatus, { label: string; dot: string; pulse: boolean }> = {
@@ -21,20 +20,10 @@ const Rivet = ({ className }: { className: string }) => (
 
 interface DeviceOverviewProps {
     device: Device;
-    updateDevices: () => void;
 }
 
-const DeviceOverview = ({ device, updateDevices }: DeviceOverviewProps) => {
+const DeviceOverview = ({ device }: DeviceOverviewProps) => {
     const [latestReadings, setLatestReadings] = useState<LatestReadings>({});
-    const [open, setOpen] = useState(false);
-    const handleOpen = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setOpen(true);
-    };
-    const handleClose = () => {
-        updateDevices();
-        setOpen(false);
-    };
 
     useEffect(() => {
         if (!device) return;
@@ -51,60 +40,50 @@ const DeviceOverview = ({ device, updateDevices }: DeviceOverviewProps) => {
     const isActive = device.status === 'ACTIVE';
 
     return (
-        <>
-            <Link
-                to={`/device/${device.device_uid}`}
-                className="group relative block bg-face rounded-md shadow-face p-5 transition-transform duration-300 hover:-translate-y-1"
-            >
-                <Rivet className="top-2 left-2" />
-                <Rivet className="top-2 right-2" />
-                <Rivet className="bottom-2 left-2" />
-                <Rivet className="bottom-2 right-2" />
+        <Link
+            to={`/device/${device.device_uid}`}
+            className="group relative block bg-face rounded-md shadow-face p-7 transition-transform duration-300 hover:-translate-y-1"
+        >
+            <Rivet className="top-2.5 left-2.5" />
+            <Rivet className="top-2.5 right-2.5" />
+            <Rivet className="bottom-2.5 left-2.5" />
+            <Rivet className="bottom-2.5 right-2.5" />
 
-                <div className="flex items-start justify-between gap-3 mb-1">
-                    <div className="min-w-0">
-                        <h2 className="font-display font-semibold uppercase tracking-wide text-ink text-xl leading-tight truncate">
-                            {device.device_name}
-                        </h2>
-                        <p className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 mt-0.5">
-                            {device.location_name || 'Unassigned'}
-                        </p>
-                    </div>
-                    <span className="flex items-center gap-1.5 shrink-0 pt-1">
-                        <span
-                            className={`h-2 w-2 rounded-full ${status.dot} ${status.pulse ? 'animate-lamp' : ''}`}
-                        />
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
-                            {status.label}
-                        </span>
-                    </span>
+            <div className="flex items-start justify-between gap-3 mb-1">
+                <div className="min-w-0">
+                    <h2 className="font-display font-semibold uppercase tracking-wide text-ink text-2xl leading-tight truncate">
+                        {device.device_name}
+                    </h2>
+                    <p className="font-mono text-xs uppercase tracking-widest text-ink-soft/70 mt-0.5">
+                        {device.location_name || 'Unassigned'}
+                    </p>
                 </div>
-
-                <div className="mt-4 flex justify-center">
-                    <StationDial
-                        temperature={latestReadings.temperature}
-                        humidity={latestReadings.humidity}
-                        pressure={latestReadings.pressure}
-                        size={90}
-                        active={isActive}
+                <span className="flex items-center gap-1.5 shrink-0 pt-1">
+                    <span
+                        className={`h-2.5 w-2.5 rounded-full ${status.dot} ${status.pulse ? 'animate-lamp' : ''}`}
                     />
-                </div>
-
-                <div className="mt-5 pt-3 border-t border-ink/10 flex items-center justify-between">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-brass-dark group-hover:text-brass transition-colors">
-                        View station &rarr;
+                    <span className="font-mono text-[11px] uppercase tracking-widest text-ink-soft">
+                        {status.label}
                     </span>
-                    <button
-                        type="button"
-                        onClick={handleOpen}
-                        className="font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 hover:text-ink transition-colors"
-                    >
-                        Configure
-                    </button>
-                </div>
-            </Link>
-            <DeviceDetailsModal show={open} handleClose={handleClose} device={device} />
-        </>
+                </span>
+            </div>
+
+            <div className="mt-6 flex justify-center">
+                <StationDial
+                    temperature={latestReadings.temperature}
+                    humidity={latestReadings.humidity}
+                    pressure={latestReadings.pressure}
+                    size={112}
+                    active={isActive}
+                />
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-ink/10">
+                <span className="font-mono text-xs uppercase tracking-widest text-brass-dark group-hover:text-brass transition-colors">
+                    View station &rarr;
+                </span>
+            </div>
+        </Link>
     );
 };
 
