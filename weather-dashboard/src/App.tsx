@@ -35,7 +35,7 @@ const Navigation = () => (
     <header className="sticky top-0 z-30 bg-panel/95 backdrop-blur border-b border-brass/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-6">
             <NavLink to="/" className="flex items-center gap-2.5 shrink-0">
-                <span className="h-2.5 w-2.5 rounded-full bg-brass shadow-[0_0_8px_2px_rgba(184,134,58,0.6)]" />
+                <img src="/logo-nav.png" alt="" className="h-8 w-8 rounded-md shadow-[0_0_8px_2px_rgba(184,134,58,0.3)]" />
                 <span className="font-display font-semibold uppercase tracking-[0.12em] text-face text-lg">
                     Home Hub <span className="text-brass">Weather</span>
                 </span>
