@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../StationDial/StationDial';
+import { usePressureTrend } from '../../hooks/usePressureTrend';
 import type { Device, DeviceStatus, LatestReadings } from '../../api/types';
 
 const STATUS_META: Record<DeviceStatus, { label: string; dot: string; pulse: boolean }> = {
@@ -38,6 +39,7 @@ const DeviceOverview = ({ device }: DeviceOverviewProps) => {
 
     const status = STATUS_META[device.status] || STATUS_META.REGISTERED;
     const isActive = device.status === 'ACTIVE';
+    const pressureTrend = usePressureTrend(device.device_uid, isActive);
 
     return (
         <Link
@@ -73,6 +75,7 @@ const DeviceOverview = ({ device }: DeviceOverviewProps) => {
                     temperature={latestReadings.temperature}
                     humidity={latestReadings.humidity}
                     pressure={latestReadings.pressure}
+                    pressureTrend={pressureTrend}
                     size={132}
                     active={isActive}
                 />

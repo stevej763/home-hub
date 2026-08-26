@@ -1,3 +1,5 @@
+import type { PressureTrend } from '../../hooks/usePressureTrend';
+
 type Metric = 'temperature' | 'humidity' | 'pressure';
 
 interface RangeMeta {
@@ -37,14 +39,21 @@ interface GaugeProps {
     value: number | null;
     size: number;
     active: boolean;
+    trend?: PressureTrend | null;
 }
+
+const trendColorClass = (changeHpa: number): string => {
+    if (changeHpa >= 1) return 'text-teal';
+    if (changeHpa <= -1) return 'text-rust';
+    return 'text-ink-soft';
+};
 
 /**
  * A single analog instrument gauge - an open arc (like a barometer's brass
  * face) rather than a full ring, so the reading sits in the open mouth
  * instead of being squeezed into a shared centre.
  */
-const Gauge = ({ metric, value, size, active }: GaugeProps) => {
+const Gauge = ({ metric, value, size, active, trend }: GaugeProps) => {
     const meta = RANGES[metric];
     const fraction = clampFraction(value, meta.min, meta.max);
     const circumference = 2 * Math.PI * RADIUS;
@@ -143,6 +152,15 @@ const Gauge = ({ metric, value, size, active }: GaugeProps) => {
                     {meta.label}
                 </span>
             </span>
+            {hasReading && trend && (
+                <span
+                    className={`font-mono tracking-wide ${trendColorClass(trend.changeHpa)}`}
+                    style={{ fontSize: Math.max(8, size * 0.09) }}
+                >
+                    {trend.arrow} {trend.label} ({trend.changeHpa >= 0 ? '+' : ''}
+                    {trend.changeHpa.toFixed(1)} hPa/3h)
+                </span>
+            )}
         </div>
     );
 };
@@ -151,6 +169,7 @@ interface StationDialProps {
     temperature?: string | number | null;
     humidity?: string | number | null;
     pressure?: string | number | null;
+    pressureTrend?: PressureTrend | null;
     size?: number;
     active?: boolean;
     className?: string;
@@ -166,6 +185,7 @@ const StationDial = ({
     temperature,
     humidity,
     pressure,
+    pressureTrend,
     size = 90,
     active = true,
     className = '',
@@ -178,7 +198,7 @@ const StationDial = ({
         <div className={`flex flex-wrap items-start justify-center gap-x-4 gap-y-3 ${className}`}>
             <Gauge metric="temperature" value={temp} size={size} active={active} />
             <Gauge metric="humidity" value={hum} size={size} active={active} />
-            <Gauge metric="pressure" value={pres} size={size} active={active} />
+            <Gauge metric="pressure" value={pres} size={size} active={active} trend={pressureTrend} />
         </div>
     );
 };

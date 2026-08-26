@@ -4,6 +4,7 @@ import { getDevice, getLatestReadingsForDeviceUid } from '../../api/device';
 import StationDial from '../../Components/StationDial/StationDial';
 import BarCharts from '../../Components/Chart/BarCharts';
 import TimePicker from '../../Components/TimePicker/TimePicker';
+import { usePressureTrend } from '../../hooks/usePressureTrend';
 import type { Device, DeviceStatus, LatestReadings } from '../../api/types';
 
 const STATUS_META: Record<DeviceStatus, { label: string; dot: string; pulse: boolean }> = {
@@ -49,6 +50,7 @@ const DeviceDetailPage = () => {
 
     const isActive = device.status === 'ACTIVE';
     const status = device.status ? STATUS_META[device.status] : undefined;
+    const pressureTrend = usePressureTrend(deviceUid, isActive);
 
     return (
         <div>
@@ -93,6 +95,7 @@ const DeviceDetailPage = () => {
                             temperature={latestReadings.temperature}
                             humidity={latestReadings.humidity}
                             pressure={latestReadings.pressure}
+                            pressureTrend={pressureTrend}
                             size={132}
                             active={isActive}
                         />

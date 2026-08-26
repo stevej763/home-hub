@@ -42,6 +42,13 @@ const DeviceInfoPage = () => {
 
     const readErrorCount = device.read_error_count ?? 0;
 
+    const getWifiQuality = (dbm: number): string => {
+        if (dbm >= -50) return 'Excellent';
+        if (dbm >= -60) return 'Good';
+        if (dbm >= -70) return 'Fair';
+        return 'Poor';
+    };
+
     return (
         <div>
             <nav className="font-mono text-xs uppercase tracking-widest text-face/50 mb-6">
@@ -112,7 +119,11 @@ const DeviceInfoPage = () => {
                     </div>
                     <div>
                         <dt className="uppercase tracking-widest">WiFi signal</dt>
-                        <dd className="text-ink mt-1">{device.wifi_signal_strength != null ? `${device.wifi_signal_strength} dBm` : '—'}</dd>
+                        <dd className="text-ink mt-1">
+                            {device.wifi_signal_strength != null
+                                ? `${getWifiQuality(device.wifi_signal_strength)} (${device.wifi_signal_strength} dBm)`
+                                : '—'}
+                        </dd>
                     </div>
                     <div>
                         <dt className="uppercase tracking-widest">Read errors</dt>
