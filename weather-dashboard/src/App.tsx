@@ -73,9 +73,9 @@ const App = () => {
                     <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
                         <Routes>
                             <Route path="/" element={<SummaryPage />} />
+                            <Route path="/device/:deviceUid" element={<DeviceDetail />} />
                             <Route path="/all-device-data" element={<AllDeviceDataPage />} />
-                            <Route path="/all-device-data/:deviceUid" element={<DeviceDetail />} />
-                            <Route path="/all-device-data/:deviceUid/details" element={<DeviceInfoPage />} />
+                            <Route path="/all-device-data/:deviceUid" element={<DeviceInfoPage />} />
                             <Route path="/locations" element={<LocationConfigurationPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>

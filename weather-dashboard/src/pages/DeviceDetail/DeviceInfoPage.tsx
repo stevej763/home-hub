@@ -56,11 +56,7 @@ const DeviceInfoPage = () => {
                     Control room
                 </Link>
                 <span className="mx-2">/</span>
-                <Link to={`/all-device-data/${deviceUid}`} className="hover:text-brass transition-colors">
-                    {device.device_name || deviceUid}
-                </Link>
-                <span className="mx-2">/</span>
-                <span className="text-face/80">Details</span>
+                <span className="text-face/80">{device.device_name || deviceUid}</span>
             </nav>
 
             <div className="flex items-start justify-between gap-4 mb-6">

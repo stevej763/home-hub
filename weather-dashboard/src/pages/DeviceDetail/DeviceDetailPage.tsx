@@ -55,8 +55,8 @@ const DeviceDetailPage = () => {
     return (
         <div>
             <nav className="font-mono text-xs uppercase tracking-widest text-face/50 mb-6">
-                <Link to="/all-device-data" className="hover:text-brass transition-colors">
-                    Control room
+                <Link to="/" className="hover:text-brass transition-colors">
+                    Stations
                 </Link>
                 <span className="mx-2">/</span>
                 <span className="text-face/80">{device.device_name || deviceUid}</span>
@@ -65,17 +65,9 @@ const DeviceDetailPage = () => {
             <div className="bg-face rounded-md shadow-face p-6 sm:p-8 mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                     <div>
-                        <div className="flex items-start justify-between gap-4">
-                            <h1 className="font-display font-semibold uppercase tracking-wide text-ink text-3xl sm:text-4xl leading-tight">
-                                {device.device_name || 'Loading…'}
-                            </h1>
-                            <Link
-                                to={`/all-device-data/${deviceUid}/details`}
-                                className="shrink-0 mt-2 font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 hover:text-ink transition-colors"
-                            >
-                                Station details &rarr;
-                            </Link>
-                        </div>
+                        <h1 className="font-display font-semibold uppercase tracking-wide text-ink text-3xl sm:text-4xl leading-tight">
+                            {device.device_name || 'Loading…'}
+                        </h1>
                         <p className="font-mono text-xs uppercase tracking-widest text-ink-soft/70 mt-1">
                             {device.location_name || 'Unassigned location'}
                         </p>
