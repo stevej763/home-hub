@@ -52,11 +52,11 @@ const DeviceInfoPage = () => {
     return (
         <div>
             <nav className="font-mono text-xs uppercase tracking-widest text-face/50 mb-6">
-                <Link to="/" className="hover:text-brass transition-colors">
-                    Stations
+                <Link to="/all-device-data" className="hover:text-brass transition-colors">
+                    Control room
                 </Link>
                 <span className="mx-2">/</span>
-                <Link to={`/device/${deviceUid}`} className="hover:text-brass transition-colors">
+                <Link to={`/all-device-data/${deviceUid}`} className="hover:text-brass transition-colors">
                     {device.device_name || deviceUid}
                 </Link>
                 <span className="mx-2">/</span>

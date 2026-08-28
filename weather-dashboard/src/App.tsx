@@ -74,8 +74,8 @@ const App = () => {
                         <Routes>
                             <Route path="/" element={<SummaryPage />} />
                             <Route path="/all-device-data" element={<AllDeviceDataPage />} />
-                            <Route path="/device/:deviceUid" element={<DeviceDetail />} />
-                            <Route path="/device/:deviceUid/details" element={<DeviceInfoPage />} />
+                            <Route path="/all-device-data/:deviceUid" element={<DeviceDetail />} />
+                            <Route path="/all-device-data/:deviceUid/details" element={<DeviceInfoPage />} />
                             <Route path="/locations" element={<LocationConfigurationPage />} />
                             <Route path="*" element={<NotFoundPage />} />
                         </Routes>

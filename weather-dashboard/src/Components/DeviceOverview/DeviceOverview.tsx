@@ -43,7 +43,7 @@ const DeviceOverview = ({ device }: DeviceOverviewProps) => {
 
     return (
         <Link
-            to={`/device/${device.device_uid}`}
+            to={`/all-device-data/${device.device_uid}`}
             className="group relative block bg-face rounded-md shadow-face p-8 transition-transform duration-300 hover:-translate-y-1"
         >
             <Rivet className="top-3 left-3" />

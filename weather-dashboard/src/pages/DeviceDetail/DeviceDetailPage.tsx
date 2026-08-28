@@ -55,8 +55,8 @@ const DeviceDetailPage = () => {
     return (
         <div>
             <nav className="font-mono text-xs uppercase tracking-widest text-face/50 mb-6">
-                <Link to="/" className="hover:text-brass transition-colors">
-                    Stations
+                <Link to="/all-device-data" className="hover:text-brass transition-colors">
+                    Control room
                 </Link>
                 <span className="mx-2">/</span>
                 <span className="text-face/80">{device.device_name || deviceUid}</span>
@@ -70,7 +70,7 @@ const DeviceDetailPage = () => {
                                 {device.device_name || 'Loading…'}
                             </h1>
                             <Link
-                                to={`/device/${deviceUid}/details`}
+                                to={`/all-device-data/${deviceUid}/details`}
                                 className="shrink-0 mt-2 font-mono text-[11px] uppercase tracking-widest text-ink-soft/70 hover:text-ink transition-colors"
                             >
                                 Station details &rarr;

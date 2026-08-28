@@ -108,7 +108,7 @@ const AllDeviceDataPage = () => {
                                         </span>
                                     </span>
                                     <Link
-                                        to={`/device/${device.device_uid}`}
+                                        to={`/all-device-data/${device.device_uid}`}
                                         className="font-body text-ink hover:text-brass-dark transition-colors truncate"
                                     >
                                         {device.device_name}
